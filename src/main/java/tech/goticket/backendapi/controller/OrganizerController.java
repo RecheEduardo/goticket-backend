@@ -4,12 +4,16 @@ package tech.goticket.backendapi.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateOrganizerDTO;
+import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.entities.Organizer;
 import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.UserStatus;
@@ -18,6 +22,7 @@ import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.OrganizerService;
 
+import java.net.URI;
 import java.time.Instant;
 
 @RestController
@@ -27,18 +32,20 @@ public class OrganizerController {
     private final OrganizerService organizerService;
     private final UserStatusRepository userStatusRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtEncoder jwtEncoder;
 
-    public OrganizerController(UserRepository userRepository, RoleRepository roleRepository, OrganizerService organizerService, UserStatusRepository userStatusRepository, BCryptPasswordEncoder passwordEncoder) {
+    public OrganizerController(UserRepository userRepository, RoleRepository roleRepository, OrganizerService organizerService, UserStatusRepository userStatusRepository, BCryptPasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.organizerService = organizerService;
         this.userStatusRepository = userStatusRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtEncoder = jwtEncoder;
     }
 
     @PostMapping("/organizers")
     @Transactional
-    public ResponseEntity<Void> createNewOrganizer(@RequestBody CreateOrganizerDTO dto) {
+    public ResponseEntity<LoginResponse> createNewOrganizer(@RequestBody CreateOrganizerDTO dto) {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
         if (!isCNPJ) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
 
@@ -66,6 +73,18 @@ public class OrganizerController {
 
         organizerService.saveOrganizer(organizer);
 
-        return ResponseEntity.ok().build();
+        var expiresIn = 300L;
+
+        var claims = JwtClaimsSet.builder()
+                .issuer("goticketbackend")
+                .subject(organizer.getUserID().toString())
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(expiresIn))
+                .build();
+
+        var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+        return ResponseEntity.created(URI.create("/organizers/" + organizer.getUserID()))
+                .body(new LoginResponse(jwtValue, expiresIn));
     }
 }
