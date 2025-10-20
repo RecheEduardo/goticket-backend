@@ -3,7 +3,6 @@ package tech.goticket.backendapi.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.User;
@@ -31,7 +30,7 @@ public class AdminUserConfig implements CommandLineRunner {
     public void run(String... args) throws Exception {
         var roleAdmin = roleRepository.findByName(Role.Values.ADMIN.name());
 
-        var userAdmin = userRepository.findByUsername("admin");
+        var userAdmin = userRepository.findByEmail("admin");
 
         userAdmin.ifPresentOrElse(
                 user -> {
@@ -39,7 +38,7 @@ public class AdminUserConfig implements CommandLineRunner {
                 },
                 () -> {
                     var user = new User();
-                    user.setUsername("admin");
+                    user.setEmail("admin");
                     user.setPassword(bCryptPasswordEncoder.encode("123"));
                     user.setRole(roleAdmin);
                     userRepository.save(user);
