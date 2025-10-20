@@ -1,5 +1,7 @@
 package tech.goticket.backendapi.entities;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tech.goticket.backendapi.controller.dto.LoginRequest;
 
@@ -7,6 +9,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tb_users")
+@Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
 public class User {
 
     @Id
@@ -23,6 +28,10 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private UserStatus status;
 
     public UUID getUserID() {
         return userID;
@@ -54,6 +63,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
     }
 
     public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
