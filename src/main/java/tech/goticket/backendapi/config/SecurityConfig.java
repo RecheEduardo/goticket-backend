@@ -43,6 +43,7 @@ public class SecurityConfig  {
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/clients").permitAll()
                         .requestMatchers(HttpMethod.POST, "/organizers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/events").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable()) // apenas desativar em dev - TODO: review em prod
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
