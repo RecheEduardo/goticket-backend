@@ -11,17 +11,21 @@ public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "event_id")
+    @Column(name = "event_id", nullable = false)
     private Long eventID;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User organizer;
+    @JoinColumn(name = "organizer_id")
+    private User organizerID;
 
-    @Column(name = "event_description")
+    @Column(name = "event_title", nullable = false)
+    private String eventTitle;
+
+    @Column(name = "event_description", nullable = false)
     private String eventDescription;
 
     @CreationTimestamp
+    @Column(name = "creation_timestamp", nullable = false)
     private Instant creationTimeStamp;
 
     public Long getEventID() {
@@ -32,12 +36,20 @@ public class Event {
         this.eventID = eventID;
     }
 
-    public User getOrganizer() {
-        return organizer;
+    public User getOrganizerID() {
+        return organizerID;
     }
 
-    public void setOrganizer(User organizer) {
-        this.organizer = organizer;
+    public void setOrganizerID(User organizerID) {
+        this.organizerID = organizerID;
+    }
+
+    public String getEventTitle() {
+        return eventTitle;
+    }
+
+    public void setEventTitle(String eventTitle) {
+        this.eventTitle = eventTitle;
     }
 
     public String getEventDescription() {
