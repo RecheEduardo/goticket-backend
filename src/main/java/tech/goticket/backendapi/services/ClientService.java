@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.entities.Client;
 import tech.goticket.backendapi.repository.ClientRepository;
@@ -12,11 +13,8 @@ import java.util.Optional;
 @Service
 public class ClientService {
 
-    private final ClientRepository clientRepository;
-
-    public ClientService(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
-    }
+    @Autowired
+    private ClientRepository clientRepository;
 
     public Optional<Client> findByIdentityDocument(String identityDocument) {
         return this.clientRepository.findByIdentityDocument(identityDocument);

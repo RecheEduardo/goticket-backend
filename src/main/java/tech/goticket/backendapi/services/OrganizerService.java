@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.entities.Organizer;
 import tech.goticket.backendapi.repository.OrganizerRepository;
@@ -9,11 +10,9 @@ import java.util.Optional;
 
 @Service
 public class OrganizerService {
-    private final OrganizerRepository organizerRepository;
 
-    public OrganizerService(OrganizerRepository organizerRepository) {
-        this.organizerRepository = organizerRepository;
-    }
+    @Autowired
+    private OrganizerRepository organizerRepository;
 
     public Optional<Organizer> findByCNPJ(String CNPJ) {
         return this.organizerRepository.findByCNPJ(CNPJ);
