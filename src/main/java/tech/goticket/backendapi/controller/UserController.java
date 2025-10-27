@@ -1,6 +1,8 @@
 package tech.goticket.backendapi.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,13 +11,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.LoginRequest;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
+import tech.goticket.backendapi.controller.dto.UserDTO;
 import tech.goticket.backendapi.controller.dto.UserListDTO;
 import tech.goticket.backendapi.entities.UserStatus;
 import tech.goticket.backendapi.services.UserService;
@@ -69,16 +69,18 @@ public class UserController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<List<UserListDTO>> listActiveUsers(){
-        var users = userService.findActiveUsers();
+    public ResponseEntity<UserListDTO> listActiveUsers(@RequestParam(name = "page",defaultValue = "0") int page,
+                                                       @RequestParam(name = "page",defaultValue = "10") int pageSize){
+        var users = userService.findActiveUsers(PageRequest.of(page,pageSize, Sort.Direction.ASC, "email"));
 
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/all")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<List<UserListDTO>> listAllUsers(){
-        var users = userService.findAll();
+    public ResponseEntity<UserListDTO> listAllUsers(@RequestParam(name = "page",defaultValue = "0") int page,
+                                                    @RequestParam(name = "page",defaultValue = "10") int pageSize){
+        var users = userService.findAll(PageRequest.of(page,pageSize, Sort.Direction.ASC, "email"));
 
         return ResponseEntity.ok(users);
     }

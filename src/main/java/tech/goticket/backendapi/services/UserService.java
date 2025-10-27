@@ -2,14 +2,15 @@ package tech.goticket.backendapi.services;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import tech.goticket.backendapi.controller.dto.UserDTO;
 import tech.goticket.backendapi.controller.dto.UserListDTO;
 import tech.goticket.backendapi.entities.User;
 import tech.goticket.backendapi.entities.UserStatus;
 import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,23 +25,33 @@ public class UserService {
     private UserStatusRepository userStatusRepository;
 
     @Transactional
-    public List<UserListDTO> findAll() {
-        var users = userRepository.findAll();
-        return users.stream().map(user -> new UserListDTO(user.getUserID(),
-                                                            user.getEmail(),
-                                                            user.getRole(),
-                                                            user.getStatus())).toList();
+    public UserListDTO findAll(PageRequest request) {
+        var users = userRepository.findAll(request).map(user -> new UserDTO(user.getUserID(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus()));
+
+        return new UserListDTO(request.getPageNumber(),
+                request.getPageSize(),
+                users.getTotalPages(),
+                users.getTotalElements(),
+                users.toList());
     }
 
     @Transactional
-    public List<UserListDTO> findActiveUsers() {
+    public UserListDTO findActiveUsers(PageRequest request) {
         var activeStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
-        var users = userRepository.findByStatus(activeStatus);
+        var users = userRepository.findByStatus(activeStatus, request)
+                .map(user -> new UserDTO(user.getUserID(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.getStatus()));
 
-        return users.stream().map(user -> new UserListDTO(user.getUserID(),
-                user.getEmail(),
-                user.getRole(),
-                user.getStatus())).toList();
+        return new UserListDTO(request.getPageNumber(),
+                request.getPageSize(),
+                users.getTotalPages(),
+                users.getTotalElements(),
+                users.toList());
     }
 
     public Optional<User> findById(UUID userID) { return userRepository.findById(userID); }
