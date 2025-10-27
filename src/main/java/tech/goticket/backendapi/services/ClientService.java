@@ -9,6 +9,7 @@ import tech.goticket.backendapi.repository.UserRepository;
 
 import java.util.InputMismatchException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ClientService {
@@ -18,6 +19,10 @@ public class ClientService {
 
     public Optional<Client> findByIdentityDocument(String identityDocument) {
         return this.clientRepository.findByIdentityDocument(identityDocument);
+    }
+
+    public Optional<Client> findById(UUID clientId) {
+        return this.clientRepository.findByUserID(clientId);
     }
 
     public void saveClient(Client client) { clientRepository.save(client); }

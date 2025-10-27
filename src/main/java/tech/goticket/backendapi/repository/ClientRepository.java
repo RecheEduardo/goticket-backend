@@ -5,8 +5,11 @@ import org.springframework.stereotype.Repository;
 import tech.goticket.backendapi.entities.Client;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
     Optional<Client> findByIdentityDocument(String identityDocument);
+
+    Optional<Client> findByUserID(UUID userID);
 }

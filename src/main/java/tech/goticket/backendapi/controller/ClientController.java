@@ -3,15 +3,13 @@ package tech.goticket.backendapi.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateClientDTO;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
@@ -28,6 +26,7 @@ import tech.goticket.backendapi.services.ClientService;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/clients")
@@ -96,5 +95,15 @@ public class ClientController {
 
         return ResponseEntity.created(URI.create("/clients/" + client.getUserID()))
                 .body(new LoginResponse(jwtValue, expiresIn));
+    }
+
+    @GetMapping("/{clientId}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #clientId")
+    public ResponseEntity<Client> getClientById(@PathVariable String clientId) {
+        UUID uuid = UUID.fromString(clientId);
+        var client = this.clientService.findById(uuid).
+                orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
+
+        return ResponseEntity.ok(client);
     }
 }
