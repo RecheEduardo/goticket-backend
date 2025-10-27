@@ -56,7 +56,7 @@ public class EventController {
     public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto) {
 
         User organizer = userRepository.findById(dto.organizerID())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Organizador não encontrado"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
 
         Role userRole = organizer.getRole();
         boolean isOrganizer = userRole.getName().equals(Role.Values.ORGANIZER.name());
