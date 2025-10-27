@@ -1,9 +1,12 @@
 package tech.goticket.backendapi.controller.dto;
 
-import tech.goticket.backendapi.entities.Role;
-import tech.goticket.backendapi.entities.UserStatus;
+import org.springframework.data.domain.Page;
 
-import java.util.UUID;
+import java.util.List;
 
-public record UserListDTO(UUID userId, String email, Role role, UserStatus status) {
+public record UserListDTO(int page,
+                          int pageSize,
+                          int totalPages,
+                          long totalElements,
+                          List<UserDTO> userDTOList) {
 }
