@@ -23,6 +23,7 @@ import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.OrganizerService;
+import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
 import java.time.Instant;
@@ -32,7 +33,7 @@ import java.time.Instant;
 public class OrganizerController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -55,7 +56,7 @@ public class OrganizerController {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
         if (!isCNPJ) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
 
-        var userFromDb = userRepository.findByEmail(dto.email());
+        var userFromDb = userService.findByEmail(dto.email());
         var organizerFromDb = organizerService.findByCNPJ(dto.CNPJ());
 
         if (userFromDb.isPresent() || organizerFromDb.isPresent()){

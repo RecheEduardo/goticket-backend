@@ -17,9 +17,9 @@ import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.User;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.RoleRepository;
-import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.EventService;
+import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
 import java.time.Instant;
@@ -30,7 +30,7 @@ import java.util.List;
 public class EventController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -55,7 +55,7 @@ public class EventController {
     @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
     public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto) {
 
-        User organizer = userRepository.findById(dto.organizerID())
+        User organizer = userService.findById(dto.organizerID())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
 
         Role userRole = organizer.getRole();
@@ -67,7 +67,7 @@ public class EventController {
             );
         }
 
-        var eventFromDb = eventRepository.findByEventID(dto.eventID());
+        var eventFromDb = eventService.findByEventID(dto.eventID());
 
         if(eventFromDb.isPresent()){
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);

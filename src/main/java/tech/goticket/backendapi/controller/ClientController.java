@@ -22,6 +22,7 @@ import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.ClientService;
+import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
 import java.time.Instant;
@@ -33,7 +34,7 @@ import java.util.UUID;
 public class ClientController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -57,7 +58,7 @@ public class ClientController {
         boolean isCpf = ClientService.isCPF(dto.identityDocument());
         if (!isCpf) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
 
-        var userFromDb = userRepository.findByEmail(dto.email());
+        var userFromDb = userService.findByEmail(dto.email());
         var clientFromDb = clientService.findByIdentityDocument(dto.identityDocument());
 
         if (userFromDb.isPresent() || clientFromDb.isPresent()){
