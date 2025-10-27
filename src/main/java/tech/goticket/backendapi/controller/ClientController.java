@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,24 +30,24 @@ import java.time.LocalDate;
 
 @RestController
 public class ClientController {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final ClientService clientService;
-    private final UserStatusRepository userStatusRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtEncoder jwtEncoder;
 
-    public ClientController(UserRepository userRepository,
-                            RoleRepository roleRepository,
-                            ClientService clientService,
-                            UserStatusRepository userStatusRepository, BCryptPasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.clientService = clientService;
-        this.userStatusRepository = userStatusRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtEncoder = jwtEncoder;
-    }
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private ClientService clientService;
+
+    @Autowired
+    private UserStatusRepository userStatusRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
 
     @PostMapping("/clients")
     @Transactional

@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.controller;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,23 +30,27 @@ import java.util.List;
 
 @RestController
 public class EventController {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final EventRepository eventRepository;
-    private final EventService eventService;
-    private final UserStatusRepository userStatusRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtEncoder jwtEncoder;
 
-    public EventController(UserRepository userRepository, RoleRepository roleRepository, EventRepository eventRepository, EventService eventService,UserStatusRepository userStatusRepository, BCryptPasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.eventRepository = eventRepository;
-        this.eventService = eventService;
-        this.userStatusRepository = userStatusRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtEncoder = jwtEncoder;
-    }
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private EventService eventService;
+
+    @Autowired
+    private UserStatusRepository userStatusRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
 
     @PostMapping("/events")
     @Transactional

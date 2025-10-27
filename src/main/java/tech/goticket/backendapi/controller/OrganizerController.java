@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.controller;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,21 +28,24 @@ import java.time.Instant;
 
 @RestController
 public class OrganizerController {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final OrganizerService organizerService;
-    private final UserStatusRepository userStatusRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JwtEncoder jwtEncoder;
 
-    public OrganizerController(UserRepository userRepository, RoleRepository roleRepository, OrganizerService organizerService, UserStatusRepository userStatusRepository, BCryptPasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.organizerService = organizerService;
-        this.userStatusRepository = userStatusRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtEncoder = jwtEncoder;
-    }
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private OrganizerService organizerService;
+
+    @Autowired
+    private UserStatusRepository userStatusRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
 
     @PostMapping("/organizers")
     @Transactional
