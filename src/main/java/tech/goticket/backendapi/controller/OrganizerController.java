@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateOrganizerDTO;
@@ -27,6 +28,7 @@ import java.net.URI;
 import java.time.Instant;
 
 @RestController
+@RequestMapping(value = "/organizers")
 public class OrganizerController {
 
     @Autowired
@@ -47,7 +49,7 @@ public class OrganizerController {
     @Autowired
     private JwtEncoder jwtEncoder;
 
-    @PostMapping("/organizers")
+    @PostMapping
     @Transactional
     public ResponseEntity<LoginResponse> createNewOrganizer(@RequestBody CreateOrganizerDTO dto) {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());

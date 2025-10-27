@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateClientDTO;
@@ -29,6 +30,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @RestController
+@RequestMapping(value = "/clients")
 public class ClientController {
 
     @Autowired
@@ -49,7 +51,7 @@ public class ClientController {
     @Autowired
     private JwtEncoder jwtEncoder;
 
-    @PostMapping("/clients")
+    @PostMapping
     @Transactional
     public ResponseEntity<LoginResponse> createNewClient(@RequestBody CreateClientDTO dto) {
 

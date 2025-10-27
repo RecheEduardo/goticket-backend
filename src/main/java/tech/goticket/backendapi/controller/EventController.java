@@ -8,10 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateEventDTO;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
@@ -29,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 
 @RestController
+@RequestMapping("/events")
 public class EventController {
 
     @Autowired
@@ -52,7 +50,7 @@ public class EventController {
     @Autowired
     private JwtEncoder jwtEncoder;
 
-    @PostMapping("/events")
+    @PostMapping
     @Transactional
     @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
     public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto) {
@@ -89,7 +87,7 @@ public class EventController {
         return ResponseEntity.created(URI.create("/events/" + event.getEventID())).build();
     }
 
-    @GetMapping("/events")
+    @GetMapping
     public ResponseEntity<List<Event>> listAllEvents(){
         var events = eventRepository.findAll();
 
