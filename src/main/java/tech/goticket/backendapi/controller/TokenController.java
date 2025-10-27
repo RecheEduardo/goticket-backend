@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import tech.goticket.backendapi.controller.dto.LoginRequest;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
+import tech.goticket.backendapi.controller.dto.UserListDTO;
 import tech.goticket.backendapi.entities.User;
 import tech.goticket.backendapi.repository.UserRepository;
+import tech.goticket.backendapi.services.UserService;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,22 +25,19 @@ import java.util.List;
 @RestController
 public class TokenController {
 
-    private final JwtEncoder jwtEncoder;
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private JwtEncoder jwtEncoder;
 
-    public TokenController(JwtEncoder jwtEncoder,
-                           UserRepository userRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.jwtEncoder = jwtEncoder;
-        this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
 
-        var user = userRepository.findByEmail(loginRequest.email());
+        var user = userService.findByEmail(loginRequest.email());
 
         if(user.isEmpty() || !user.get().isLoginCorrect(loginRequest, bCryptPasswordEncoder)) {
             throw new BadCredentialsException("E-mail ou Senha inválidos!");
@@ -63,8 +63,8 @@ public class TokenController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<List<User>> listAllUsers(){
-        var users = userRepository.findAll();
+    public ResponseEntity<List<UserListDTO>> listAllUsers(){
+        var users = userService.findAll();
 
         return ResponseEntity.ok(users);
     }
