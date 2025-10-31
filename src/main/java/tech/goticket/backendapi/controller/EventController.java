@@ -24,6 +24,7 @@ import tech.goticket.backendapi.services.UserService;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/events")
@@ -92,5 +93,32 @@ public class EventController {
         var events = eventRepository.findAll();
 
         return ResponseEntity.ok(events);
+    }
+
+    @DeleteMapping
+    @Transactional
+    @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
+    public ResponseEntity<Event> deleteEventByID(@RequestParam(name = "eventID") Long eventID,
+                                                 @RequestBody CreateEventDTO dto){
+
+        Event targetEvent = eventRepository.findByEventID(eventID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
+
+        User organizer = userService.findById(dto.organizerID())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
+
+        User EventOrganizer = targetEvent.getOrganizerID();
+
+        boolean isOrganizer = EventOrganizer.getUserID().equals(organizer.getUserID());
+
+        if(!isOrganizer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Usuário não tem permissão para executar esta ação"
+            );
+        }
+
+        eventService.deleteEvent(targetEvent);
+
+        return ResponseEntity.ok(targetEvent);
     }
 }
