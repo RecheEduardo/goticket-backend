@@ -18,18 +18,35 @@ public class Event {
     @Column(name = "event_id", nullable = false)
     private Long eventID;
 
+    @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
+    private Integer ageRestriction;
+
+    @Column(name = "start_date", nullable = false)
+    private Instant startDate;
+
+    @Column(name = "end_date", nullable = false)
+    private Instant endDate;
+
+    @Column(name = "approval_date", nullable = true)
+    private Instant approvalDate;
+
+    @Column(name = "register_date", nullable = false)
+    private Instant registerDate;
+
+    @Column(name = "last_update_date", nullable = false)
+    private Instant lastUpdateDate;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private EventStatus status;
+
     @ManyToOne
     @JoinColumn(name = "organizer_id")
     private User organizerID;
-
-    @Column(name = "event_title", nullable = false)
-    private String eventTitle;
-
-    @Column(name = "event_description", nullable = false)
-    private String eventDescription;
-
-    @CreationTimestamp
-    @Column(name = "creation_timestamp", nullable = false)
-    private Instant creationTimeStamp;
-
 }

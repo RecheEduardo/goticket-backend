@@ -43,6 +43,8 @@ public class Client extends User {
 
     private String city;
 
+    private String state;
+
     private String country;
 
     @Column(name = "zip_code")
