@@ -83,6 +83,8 @@ public class ClientController {
 
         clientService.saveClient(client);
 
+        var scope = client.getRole().getName();
+
         var expiresIn = 300L;
 
         var claims = JwtClaimsSet.builder()
@@ -90,6 +92,7 @@ public class ClientController {
                 .subject(client.getUserID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope",scope)
                 .build();
 
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

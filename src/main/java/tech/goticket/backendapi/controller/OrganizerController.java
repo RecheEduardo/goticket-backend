@@ -82,11 +82,14 @@ public class OrganizerController {
 
         var expiresIn = 300L;
 
+        var scope = organizer.getRole().getName();
+
         var claims = JwtClaimsSet.builder()
                 .issuer("goticketbackend")
                 .subject(organizer.getUserID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope", scope)
                 .build();
 
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
