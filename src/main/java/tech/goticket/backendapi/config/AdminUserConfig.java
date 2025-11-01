@@ -37,7 +37,7 @@ public class AdminUserConfig implements CommandLineRunner {
 
         var adminStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
 
-        var userAdmin = userRepository.findByEmail("admin");
+        var userAdmin = userRepository.findByEmail("admin@admin.com");
 
         userAdmin.ifPresentOrElse(
                 user -> {
