@@ -7,6 +7,7 @@ import tech.goticket.backendapi.repository.OrganizerRepository;
 
 import java.util.InputMismatchException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrganizerService {
@@ -14,11 +15,13 @@ public class OrganizerService {
     @Autowired
     private OrganizerRepository organizerRepository;
 
+    public void saveOrganizer(Organizer organizer) { organizerRepository.save(organizer); }
+
     public Optional<Organizer> findByCNPJ(String CNPJ) {
         return this.organizerRepository.findByCNPJ(CNPJ);
     }
 
-    public void saveOrganizer(Organizer organizer) { organizerRepository.save(organizer); }
+    public Optional<Organizer> findById(UUID organizerId) { return this.organizerRepository.findByUserID(organizerId); }
 
     public static boolean isCNPJ(String CNPJ) {
         if (CNPJ.equals("00000000000000") || CNPJ.equals("11111111111111") ||

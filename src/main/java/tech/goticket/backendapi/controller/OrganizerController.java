@@ -4,18 +4,17 @@ package tech.goticket.backendapi.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateOrganizerDTO;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
+import tech.goticket.backendapi.entities.Client;
 import tech.goticket.backendapi.entities.Organizer;
 import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.UserStatus;
@@ -27,6 +26,7 @@ import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/organizers")
@@ -93,5 +93,15 @@ public class OrganizerController {
 
         return ResponseEntity.created(URI.create("/organizers/" + organizer.getUserID()))
                 .body(new LoginResponse(jwtValue, expiresIn));
+    }
+
+    @GetMapping("/{organizerId}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #organizerId")
+    public ResponseEntity<Organizer> getOrganizerById(@PathVariable String organizerId) {
+        UUID uuid = UUID.fromString(organizerId);
+        var organizer = this.organizerService.findById(uuid).
+                orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
+
+        return ResponseEntity.ok(organizer);
     }
 }
