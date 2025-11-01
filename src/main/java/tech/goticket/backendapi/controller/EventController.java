@@ -104,6 +104,14 @@ public class EventController {
         return ResponseEntity.created(URI.create("/events/" + event.getEventID())).build();
     }
 
+    @GetMapping("/{eventId}")
+    public ResponseEntity<Event> findEventById(@PathVariable Long eventId) {
+        var event = eventService.findByEventID(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado."));
+
+        return ResponseEntity.ok(event);
+    }
+
     @GetMapping
     public ResponseEntity<EventMinListDTO> listApprovedEvents(@RequestParam(name = "page",defaultValue = "0") int page,
                                                               @RequestParam(name = "page",defaultValue = "10") int pageSize){
@@ -118,7 +126,7 @@ public class EventController {
     public ResponseEntity<Event> deleteEventByID(@RequestParam(name = "eventID") Long eventID,
                                                  @RequestBody CreateEventDTO dto){
 
-        Event targetEvent = eventRepository.findByEventID(eventID)
+        Event targetEvent = eventService.findByEventID(eventID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
 
         User organizer = userService.findById(dto.organizerID())
