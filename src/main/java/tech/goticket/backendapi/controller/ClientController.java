@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateClientDTO;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
-import tech.goticket.backendapi.entities.Client;
-import tech.goticket.backendapi.entities.Role;
-import tech.goticket.backendapi.entities.User;
-import tech.goticket.backendapi.entities.UserStatus;
-import tech.goticket.backendapi.repository.ClientRepository;
+import tech.goticket.backendapi.entities.*;
 import tech.goticket.backendapi.repository.RoleRepository;
-import tech.goticket.backendapi.repository.UserRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.ClientService;
 import tech.goticket.backendapi.services.UserService;
@@ -109,5 +105,15 @@ public class ClientController {
                 orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
 
         return ResponseEntity.ok(client);
+    }
+
+    @PatchMapping("/{clientId}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #clientId")
+    public ResponseEntity<Client> updateClient(@PathVariable String clientId,
+                                                     @RequestBody JsonNode patchNode) {
+        UUID uuid = UUID.fromString(clientId);
+        var updatedClient = this.clientService.updateClient(uuid, patchNode);
+
+        return ResponseEntity.ok(updatedClient);
     }
 }

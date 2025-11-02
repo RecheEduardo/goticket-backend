@@ -1,11 +1,13 @@
 package tech.goticket.backendapi.services;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.entities.Client;
 import tech.goticket.backendapi.repository.ClientRepository;
-import tech.goticket.backendapi.repository.UserRepository;
 
 import java.util.InputMismatchException;
 import java.util.Optional;
@@ -17,6 +19,12 @@ public class ClientService {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public Optional<Client> findByIdentityDocument(String identityDocument) {
         return this.clientRepository.findByIdentityDocument(identityDocument);
     }
@@ -26,6 +34,39 @@ public class ClientService {
     }
 
     public void saveClient(Client client) { clientRepository.save(client); }
+
+    public Client updateClient(UUID uuid, JsonNode patchNode) {
+        Client existingClient = clientRepository.findByUserID(uuid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado"));
+
+        try {
+            JsonNode existingClientNode = objectMapper.valueToTree(existingClient);
+
+            JsonNode patchedNode = objectMapper.readerForUpdating(existingClientNode)
+                    .readValue(patchNode);
+
+            Client updatedClient = objectMapper.treeToValue(patchedNode, Client.class);
+            updatedClient.setPassword(existingClient.getPassword());
+
+            if(!updatedClient.getUserID().equals(existingClient.getUserID())) {
+                updatedClient.setUserID(existingClient.getUserID());
+            }
+
+            if(!updatedClient.getEmail().equals(existingClient.getEmail())) {
+                userService.findByEmail(updatedClient.getEmail())
+                        .ifPresent(
+                                user -> {
+                                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                                            "E-mail já cadastrado na plataforma.");
+                                });
+            }
+
+            return clientRepository.save(updatedClient);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao atualizar cliente:" + e.getMessage());
+        }
+    }
 
     public static boolean isCPF(String CPF) {
         // considera-se erro CPF"s formados por uma sequencia de numeros iguais
