@@ -133,30 +133,15 @@ public class EventController {
         return ResponseEntity.ok(event);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{eventId}")
     @Transactional
-    @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
-    public ResponseEntity<Event> deleteEventByID(@RequestParam(name = "eventID") Long eventID,
-                                                 @RequestBody CreateEventDTO dto){
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Long> deleteEventByID(@PathVariable(name = "eventId") Long eventId,
+                                                 Authentication authentication){
+        var userId = authentication.getName();
+        UUID uuid = UUID.fromString(userId);
 
-        Event targetEvent = eventService.findByEventID(eventID)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
-
-        User organizer = userService.findById(dto.organizerID())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
-
-        User EventOrganizer = targetEvent.getOrganizer();
-
-        boolean isOrganizer = EventOrganizer.getUserID().equals(organizer.getUserID());
-
-        if(!isOrganizer) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Usuário não tem permissão para executar esta ação"
-            );
-        }
-
-        eventService.deleteEvent(targetEvent);
-
-        return ResponseEntity.ok(targetEvent);
+        eventService.deleteEventById(eventId, uuid);
+        return ResponseEntity.ok(eventId);
     }
 }

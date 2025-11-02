@@ -51,8 +51,6 @@ public class EventService {
 
     public void saveEvent(Event event) { eventRepository.save(event); }
 
-    public void deleteEvent(Event event) { eventRepository.delete(event); }
-
     public Event updateEvent(Long eventId, JsonNode patchNode, UUID userId) {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
@@ -83,5 +81,22 @@ public class EventService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao atualizar evento: " + e.getMessage());
         }
+    }
+
+    public void deleteEventById(Long eventId, UUID userId) {
+        Event existingEvent = eventRepository.findByEventID(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
+
+        var requestUser = userService.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um erro ocorreu na sessão atual, faça login novamente."));
+
+        boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
+        boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
+
+        if(!isAdmin && !isEventOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não tem permissão para executar esta ação.");
+        }
+
+        eventRepository.delete(existingEvent);
     }
 }
