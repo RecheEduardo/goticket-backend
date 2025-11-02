@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.controller;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -106,5 +107,15 @@ public class OrganizerController {
                 orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
 
         return ResponseEntity.ok(organizer);
+    }
+
+    @PatchMapping("/{organizerId}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #organizerId")
+    public ResponseEntity<Organizer> updateOrganizer(@PathVariable String organizerId,
+                                                     @RequestBody JsonNode patchNode) {
+        UUID uuid = UUID.fromString(organizerId);
+        var updatedOrganizer = this.organizerService.updateOrganizer(uuid, patchNode);
+
+        return ResponseEntity.ok(updatedOrganizer);
     }
 }
