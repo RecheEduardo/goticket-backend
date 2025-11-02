@@ -1,12 +1,14 @@
 package tech.goticket.backendapi.controller;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateEventDTO;
 import tech.goticket.backendapi.controller.dto.EventMinListDTO;
-import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.entities.Event;
 import tech.goticket.backendapi.entities.EventStatus;
 import tech.goticket.backendapi.entities.Role;
@@ -28,8 +29,7 @@ import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/events")
@@ -118,6 +118,18 @@ public class EventController {
         var events = eventService.findApprovedEvents(PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate"));
 
         return ResponseEntity.ok(events);
+    }
+
+    @PatchMapping(value = "/{eventId}", consumes = "application/merge-patch+json")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long eventId,
+                                             @RequestBody JsonNode patchNode,
+                                             Authentication authentication){
+        var userId = authentication.getName();
+        UUID uuid = UUID.fromString(userId);
+        var event = eventService.updateEvent(eventId, patchNode, uuid);
+
+        return ResponseEntity.ok(event);
     }
 
     @DeleteMapping
