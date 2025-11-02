@@ -75,6 +75,10 @@ public class EventService {
 
             Event updatedEvent = objectMapper.treeToValue(patchedNode, Event.class);
 
+            if(!updatedEvent.getEventID().equals(existingEvent.getEventID())) {
+                updatedEvent.setEventID(existingEvent.getEventID());
+            }
+
             return eventRepository.save(updatedEvent);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao atualizar evento: " + e.getMessage());
