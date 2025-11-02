@@ -61,7 +61,7 @@ public class EventService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um erro ocorreu na sessão atual, faça login novamente."));
 
         boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
-        boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizerID().getUserID());
+        boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
 
         if(!isAdmin && !isEventOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não tem permissão para executar esta ação.");

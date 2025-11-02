@@ -16,15 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateEventDTO;
 import tech.goticket.backendapi.controller.dto.EventMinListDTO;
-import tech.goticket.backendapi.entities.Event;
-import tech.goticket.backendapi.entities.EventStatus;
-import tech.goticket.backendapi.entities.Role;
-import tech.goticket.backendapi.entities.User;
+import tech.goticket.backendapi.entities.*;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.EventStatusRepository;
 import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.EventService;
+import tech.goticket.backendapi.services.OrganizerService;
 import tech.goticket.backendapi.services.UserService;
 
 import java.net.URI;
@@ -37,6 +35,9 @@ public class EventController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private OrganizerService organizerService;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -64,7 +65,7 @@ public class EventController {
     @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
     public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto) {
 
-        User organizer = userService.findById(dto.organizerID())
+        Organizer organizer = organizerService.findById(dto.organizerID())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
 
         Role userRole = organizer.getRole();
@@ -97,7 +98,7 @@ public class EventController {
         event.setRegisterDate(now);
         event.setLastUpdateDate(now);
         event.setStatus(approvedStatus);
-        event.setOrganizerID(organizer);
+        event.setOrganizer(organizer);
 
         eventService.saveEvent(event);
 
@@ -144,7 +145,7 @@ public class EventController {
         User organizer = userService.findById(dto.organizerID())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
 
-        User EventOrganizer = targetEvent.getOrganizerID();
+        User EventOrganizer = targetEvent.getOrganizer();
 
         boolean isOrganizer = EventOrganizer.getUserID().equals(organizer.getUserID());
 

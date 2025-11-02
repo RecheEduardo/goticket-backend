@@ -1,9 +1,9 @@
 package tech.goticket.backendapi.controller.projections;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public interface EventMinProjection {
     Long getEventID();
     String getTitle();
-    Instant getStartDate();
+    LocalDateTime getStartDate();
 }

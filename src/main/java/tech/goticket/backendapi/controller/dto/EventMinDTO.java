@@ -5,13 +5,14 @@ import lombok.Setter;
 import tech.goticket.backendapi.controller.projections.EventMinProjection;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class EventMinDTO {
     private Long eventID;
     private String title;
-    private Instant startDate;
+    private LocalDateTime startDate;
 
     public EventMinDTO() {}
 

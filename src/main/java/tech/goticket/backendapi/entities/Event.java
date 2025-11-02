@@ -49,5 +49,5 @@ public class Event {
 
     @ManyToOne
     @JoinColumn(name = "organizer_id")
-    private User organizerID;
+    private Organizer organizer;
 }
