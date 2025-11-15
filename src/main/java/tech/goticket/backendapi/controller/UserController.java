@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -17,11 +18,13 @@ import tech.goticket.backendapi.controller.dto.LoginRequest;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.controller.dto.UserDTO;
 import tech.goticket.backendapi.controller.dto.UserListDTO;
+import tech.goticket.backendapi.entities.User;
 import tech.goticket.backendapi.entities.UserStatus;
 import tech.goticket.backendapi.services.UserService;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class UserController {
@@ -65,6 +68,23 @@ public class UserController {
         var jwtvalue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
         return ResponseEntity.ok(new LoginResponse(jwtvalue, expiresIn));
+    }
+
+    @GetMapping("/user")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDTO> getLoggedUser(Authentication authentication){
+
+        UUID userID = UUID.fromString(authentication.getName());
+
+        User user = userService.findById(userID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        return ResponseEntity.ok(new UserDTO(
+                user.getUserID(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus()
+        ));
     }
 
     @GetMapping("/users")
