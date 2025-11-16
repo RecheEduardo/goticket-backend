@@ -115,7 +115,7 @@ public class EventController {
 
     @GetMapping
     public ResponseEntity<EventMinListDTO> listApprovedEvents(@RequestParam(name = "page",defaultValue = "0") int page,
-                                                              @RequestParam(name = "page",defaultValue = "10") int pageSize){
+                                                              @RequestParam(name = "pageSize",defaultValue = "10") int pageSize){
         var events = eventService.findApprovedEvents(PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate"));
 
         return ResponseEntity.ok(events);
