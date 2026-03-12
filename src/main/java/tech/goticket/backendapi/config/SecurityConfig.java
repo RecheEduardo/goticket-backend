@@ -50,6 +50,7 @@ public class SecurityConfig  {
                         .requestMatchers(HttpMethod.POST, "/organizers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/events").permitAll()
                         .requestMatchers(HttpMethod.GET,"/events/{eventId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/error").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable()) // apenas desativar em dev - TODO: review em prod
                 .cors(Customizer.withDefaults()) // Habilita a configuração de CORS em dev - TODO: review em prod
