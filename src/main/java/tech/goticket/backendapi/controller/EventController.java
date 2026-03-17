@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateEventDTO;
 import tech.goticket.backendapi.controller.dto.EventMinListDTO;
 import tech.goticket.backendapi.entities.*;
+import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.EventStatusRepository;
 import tech.goticket.backendapi.repository.RoleRepository;
@@ -108,7 +109,7 @@ public class EventController {
     @GetMapping("/{eventId}")
     public ResponseEntity<Event> findEventById(@PathVariable Long eventId) {
         var event = eventService.findByEventID(eventId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
 
         return ResponseEntity.ok(event);
     }
