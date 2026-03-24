@@ -15,6 +15,29 @@ import java.time.LocalDate;
 @Setter
 public class Client extends User {
 
+    public Client() { super(); }
+
+    public Client(
+            String email,
+            String password,
+            Role role,
+            UserStatus userStatus,
+            String fullName,
+            Integer sex,
+            String identityDocument,
+            LocalDate birthDate,
+            Instant registerDate,
+            Instant lastUpdateDate
+    ) {
+        super(email, password, role, userStatus);
+        this.fullName = fullName;
+        this.sex = sex;
+        this.identityDocument = identityDocument;
+        this.birthDate = birthDate;
+        this.registerDate = registerDate;
+        this.lastUpdateDate = lastUpdateDate;
+    }
+
     @Column(name = "full_name")
     private String fullName;
 

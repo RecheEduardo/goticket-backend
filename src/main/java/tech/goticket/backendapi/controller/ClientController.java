@@ -15,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateClientDTO;
 import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.entities.*;
+import tech.goticket.backendapi.exceptions.InvalidArgumentException;
+import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
 import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.ClientService;
@@ -52,7 +54,7 @@ public class ClientController {
     public ResponseEntity<LoginResponse> createNewClient(@RequestBody CreateClientDTO dto) {
 
         boolean isCpf = ClientService.isCPF(dto.identityDocument());
-        if (!isCpf) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
+        if (!isCpf) { throw new InvalidArgumentException("CPF informado é inválido."); }
 
         var userFromDb = userService.findByEmail(dto.email());
         var clientFromDb = clientService.findByIdentityDocument(dto.identityDocument());
@@ -65,17 +67,18 @@ public class ClientController {
         var clientStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
         var now = Instant.now();
 
-        var client = new Client();
-        client.setEmail(dto.email());
-        client.setPassword(passwordEncoder.encode(dto.password()));
-        client.setRole(clientRole);
-        client.setStatus(clientStatus);
-        client.setFullName(dto.fullName());
-        client.setSex(dto.sex());
-        client.setIdentityDocument(dto.identityDocument());
-        client.setBirthDate(LocalDate.parse(dto.birthDate()));
-        client.setRegisterDate(now);
-        client.setLastUpdateDate(now);
+        var client = new Client(
+                dto.email(),
+                passwordEncoder.encode(dto.password()),
+                clientRole,
+                clientStatus,
+                dto.fullName(),
+                dto.sex(),
+                dto.identityDocument(),
+                LocalDate.parse(dto.birthDate()),
+                now,
+                now
+        );
 
         clientService.saveClient(client);
 
@@ -102,7 +105,7 @@ public class ClientController {
     public ResponseEntity<Client> getClientById(@PathVariable String clientId) {
         UUID uuid = UUID.fromString(clientId);
         var client = this.clientService.findById(uuid).
-                orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
+                orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado."));
 
         return ResponseEntity.ok(client);
     }

@@ -15,6 +15,20 @@ import java.util.UUID;
 @Setter
 public class User {
 
+    public User () {}
+
+    public User (
+            String email,
+            String password,
+            Role userRole,
+            UserStatus userStatus
+    ) {
+        this.email = email;
+        this.password = password;
+        this.role = userRole;
+        this.status = userStatus;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id", nullable = false)
