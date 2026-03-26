@@ -17,6 +17,8 @@ import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.entities.*;
 import tech.goticket.backendapi.exceptions.InvalidArgumentException;
 import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
+import tech.goticket.backendapi.exceptions.user.DocumentAlreadyExistsException;
+import tech.goticket.backendapi.exceptions.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.ClientService;
@@ -25,6 +27,7 @@ import tech.goticket.backendapi.services.UserService;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -56,16 +59,15 @@ public class ClientController {
         boolean isCpf = ClientService.isCPF(dto.identityDocument());
         if (!isCpf) { throw new InvalidArgumentException("CPF informado é inválido."); }
 
-        var userFromDb = userService.findByEmail(dto.email());
-        var clientFromDb = clientService.findByIdentityDocument(dto.identityDocument());
+        userService.findByEmail(dto.email())
+                .ifPresent(user -> { throw new EmailAlreadyExistsException("Este e-mail já está cadastrado."); });
 
-        if (userFromDb.isPresent() || clientFromDb.isPresent()){
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+        clientService.findByIdentityDocument(dto.identityDocument())
+                .ifPresent(client -> { throw new DocumentAlreadyExistsException("Este CPF já está cadastrado."); });
 
-        var clientRole = roleRepository.findByName(Role.Values.CLIENT.name());
-        var clientStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
-        var now = Instant.now();
+        Role clientRole = roleRepository.findByName(Role.Values.CLIENT.name());
+        UserStatus clientStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
+        Instant now = Instant.now();
 
         var client = new Client(
                 dto.email(),
@@ -104,7 +106,7 @@ public class ClientController {
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #clientId")
     public ResponseEntity<Client> getClientById(@PathVariable String clientId) {
         UUID uuid = UUID.fromString(clientId);
-        var client = this.clientService.findById(uuid).
+        Client client = this.clientService.findById(uuid).
                 orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado."));
 
         return ResponseEntity.ok(client);
@@ -115,7 +117,7 @@ public class ClientController {
     public ResponseEntity<Client> updateClient(@PathVariable String clientId,
                                                      @RequestBody JsonNode patchNode) {
         UUID uuid = UUID.fromString(clientId);
-        var updatedClient = this.clientService.updateClient(uuid, patchNode);
+        Client updatedClient = this.clientService.updateClient(uuid, patchNode);
 
         return ResponseEntity.ok(updatedClient);
     }

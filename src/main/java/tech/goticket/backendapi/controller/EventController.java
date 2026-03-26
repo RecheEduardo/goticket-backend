@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.CreateEventDTO;
 import tech.goticket.backendapi.controller.dto.EventMinListDTO;
 import tech.goticket.backendapi.entities.*;
+import tech.goticket.backendapi.exceptions.InvalidArgumentException;
 import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.EventStatusRepository;
@@ -63,34 +64,34 @@ public class EventController {
 
     @PostMapping
     @Transactional
-    @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
-    public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto) {
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto, Authentication authentication) {
 
-        Organizer organizer = organizerService.findById(dto.organizerID())
-        .orElseThrow(() -> new ResourceNotFoundException("Organizador informado não encontrado"));
+        UUID loggedUserId = UUID.fromString(authentication.getName());
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("SCOPE_ADMIN"));
 
-        Role userRole = organizer.getRole();
-        boolean isOrganizer = userRole.getName().equals(Role.Values.ORGANIZER.name());
+        UUID targetOrganizerId;
 
-        if(!isOrganizer) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Usuário não tem permissão para executar esta ação"
-            );
+        if(isAdmin) {
+            if(dto.organizerID() == null) {
+                throw new InvalidArgumentException("O ID do organizador é obrigatório quando a criação é feita por um Administrador.");
+            }
+            targetOrganizerId = dto.organizerID();
+        }
+        else {
+            targetOrganizerId = loggedUserId;
         }
 
-        var eventFromDb = eventService.findByEventID(dto.eventID());
-
-        if(eventFromDb.isPresent()){
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+        Organizer organizer = organizerService.findById(targetOrganizerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Organizador informado não encontrado"));
 
         // Review status when approval endpoint for admins get implemented
-        var approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
+        EventStatus approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
 
-        var now = Instant.now();
+        Instant now = Instant.now();
 
-        var event = new Event();
-        event.setEventID(dto.eventID());
+        Event event = new Event();
         event.setTitle(dto.title());
         event.setDescription(dto.description());
         event.setAgeRestriction(dto.ageRestriction());

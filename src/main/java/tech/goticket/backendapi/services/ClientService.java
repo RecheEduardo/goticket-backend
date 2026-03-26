@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.entities.Client;
+import tech.goticket.backendapi.exceptions.PatchProgressingException;
+import tech.goticket.backendapi.exceptions.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.repository.ClientRepository;
 
 import java.util.InputMismatchException;
@@ -55,16 +57,13 @@ public class ClientService {
             if(!updatedClient.getEmail().equals(existingClient.getEmail())) {
                 userService.findByEmail(updatedClient.getEmail())
                         .ifPresent(
-                                user -> {
-                                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                                            "E-mail já cadastrado na plataforma.");
-                                });
+                                user -> { throw new EmailAlreadyExistsException("E-mail já cadastrado na plataforma."); });
             }
 
             return clientRepository.save(updatedClient);
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao atualizar cliente:" + e.getMessage());
+            throw new PatchProgressingException("Erro ao atualizar cliente.");
         }
     }
 

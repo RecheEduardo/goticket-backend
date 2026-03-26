@@ -20,6 +20,7 @@ import tech.goticket.backendapi.controller.dto.UserDTO;
 import tech.goticket.backendapi.controller.dto.UserListDTO;
 import tech.goticket.backendapi.entities.User;
 import tech.goticket.backendapi.entities.UserStatus;
+import tech.goticket.backendapi.exceptions.user.InactiveUserException;
 import tech.goticket.backendapi.services.UserService;
 
 import java.time.Instant;
@@ -48,8 +49,7 @@ public class UserController {
         }
 
         if (user.get().getStatus().getName().equals(UserStatus.Values.INACTIVE.name())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Acesso negado, por favor entrar em contato com o suporte da plataforma.");
+            throw new InactiveUserException("Acesso negado, por favor entrar em contato com o suporte da plataforma.");
         }
 
         var now = Instant.now();

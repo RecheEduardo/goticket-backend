@@ -13,6 +13,10 @@ import tech.goticket.backendapi.controller.dto.EventMinListDTO;
 import tech.goticket.backendapi.entities.Event;
 import tech.goticket.backendapi.entities.EventStatus;
 import tech.goticket.backendapi.entities.Role;
+import tech.goticket.backendapi.entities.User;
+import tech.goticket.backendapi.exceptions.ForbiddenActionException;
+import tech.goticket.backendapi.exceptions.InvalidArgumentException;
+import tech.goticket.backendapi.exceptions.PatchProgressingException;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.EventStatusRepository;
 
@@ -53,16 +57,16 @@ public class EventService {
 
     public Event updateEvent(Long eventId, JsonNode patchNode, UUID userId) {
         Event existingEvent = eventRepository.findByEventID(eventId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
+                .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
 
-        var requestUser = userService.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um erro ocorreu na sessão atual, faça login novamente."));
+        User requestUser = userService.findById(userId)
+                .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
 
         boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
         boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
 
         if(!isAdmin && !isEventOwner) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não tem permissão para executar esta ação.");
+            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
         }
 
         try {
@@ -79,22 +83,22 @@ public class EventService {
 
             return eventRepository.save(updatedEvent);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao atualizar evento: " + e.getMessage());
+            throw new PatchProgressingException("Erro ao atualizar evento.");
         }
     }
 
     public void deleteEventById(Long eventId, UUID userId) {
         Event existingEvent = eventRepository.findByEventID(eventId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evento não encontrado"));
+                .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
 
-        var requestUser = userService.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um erro ocorreu na sessão atual, faça login novamente."));
+        User requestUser = userService.findById(userId)
+                .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
 
         boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
         boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
 
         if(!isAdmin && !isEventOwner) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não tem permissão para executar esta ação.");
+            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
         }
 
         eventRepository.delete(existingEvent);

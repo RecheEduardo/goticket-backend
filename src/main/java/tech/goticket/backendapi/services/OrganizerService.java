@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.entities.Organizer;
+import tech.goticket.backendapi.exceptions.PatchProgressingException;
+import tech.goticket.backendapi.exceptions.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.repository.OrganizerRepository;
 
 import java.util.InputMismatchException;
@@ -52,17 +54,13 @@ public class OrganizerService {
 
             if(!updatedOrganizer.getEmail().equals(existingOrganizer.getEmail())) {
                 userService.findByEmail(updatedOrganizer.getEmail())
-                        .ifPresent(
-                                user -> {
-                            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                                    "E-mail já cadastrado na plataforma.");
-                        });
+                        .ifPresent(user -> { throw new EmailAlreadyExistsException("E-mail já cadastrado na plataforma."); });
             }
 
             return organizerRepository.save(updatedOrganizer);
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao atualizar organizador:" + e.getMessage());
+            throw new PatchProgressingException("Erro ao atualizar organizador.");
         }
     }
 

@@ -18,6 +18,9 @@ import tech.goticket.backendapi.controller.dto.LoginResponse;
 import tech.goticket.backendapi.entities.Organizer;
 import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.UserStatus;
+import tech.goticket.backendapi.exceptions.InvalidArgumentException;
+import tech.goticket.backendapi.exceptions.user.DocumentAlreadyExistsException;
+import tech.goticket.backendapi.exceptions.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.repository.RoleRepository;
 import tech.goticket.backendapi.repository.UserStatusRepository;
 import tech.goticket.backendapi.services.OrganizerService;
@@ -53,20 +56,19 @@ public class OrganizerController {
     @Transactional
     public ResponseEntity<LoginResponse> createNewOrganizer(@RequestBody CreateOrganizerDTO dto) {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
-        if (!isCNPJ) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST); }
+        if (!isCNPJ) { throw new InvalidArgumentException("CNPJ informado é inválido."); }
 
-        var userFromDb = userService.findByEmail(dto.email());
-        var organizerFromDb = organizerService.findByCNPJ(dto.CNPJ());
+        userService.findByEmail(dto.email())
+                .ifPresent(user -> { throw new EmailAlreadyExistsException("Este e-mail já está cadastrado."); });
 
-        if (userFromDb.isPresent() || organizerFromDb.isPresent()){
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+        organizerService.findByCNPJ(dto.CNPJ())
+                .ifPresent(organizer -> { throw new DocumentAlreadyExistsException("Este CNPJ já está cadastrado."); });
 
-        var orgazinerRole = roleRepository.findByName(Role.Values.ORGANIZER.name());
-        var organizerStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
-        var now = Instant.now();
+        Role orgazinerRole = roleRepository.findByName(Role.Values.ORGANIZER.name());
+        UserStatus organizerStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
+        Instant now = Instant.now();
 
-        var organizer = new Organizer();
+        Organizer organizer = new Organizer();
         organizer.setEmail(dto.email());
         organizer.setPassword(passwordEncoder.encode(dto.password()));
         organizer.setRole(orgazinerRole);
@@ -101,7 +103,7 @@ public class OrganizerController {
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #organizerId")
     public ResponseEntity<Organizer> getOrganizerById(@PathVariable String organizerId) {
         UUID uuid = UUID.fromString(organizerId);
-        var organizer = this.organizerService.findById(uuid).
+        Organizer organizer = this.organizerService.findById(uuid).
                 orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
 
         return ResponseEntity.ok(organizer);
@@ -112,7 +114,7 @@ public class OrganizerController {
     public ResponseEntity<Organizer> updateOrganizer(@PathVariable String organizerId,
                                                      @RequestBody JsonNode patchNode) {
         UUID uuid = UUID.fromString(organizerId);
-        var updatedOrganizer = this.organizerService.updateOrganizer(uuid, patchNode);
+        Organizer updatedOrganizer = this.organizerService.updateOrganizer(uuid, patchNode);
 
         return ResponseEntity.ok(updatedOrganizer);
     }
