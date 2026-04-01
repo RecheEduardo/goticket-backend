@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +55,7 @@ public class ClientController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<LoginResponse> createNewClient(@RequestBody CreateClientDTO dto) {
+    public ResponseEntity<LoginResponse> createNewClient(@Valid @RequestBody CreateClientDTO dto) {
 
         boolean isCpf = ClientService.isCPF(dto.identityDocument());
         if (!isCpf) { throw new InvalidArgumentException("CPF informado é inválido."); }

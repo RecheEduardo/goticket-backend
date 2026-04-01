@@ -1,9 +1,11 @@
 package tech.goticket.backendapi.config;
 
 import org.apache.coyote.Response;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tech.goticket.backendapi.exceptions.ForbiddenActionException;
@@ -17,6 +19,7 @@ import tech.goticket.backendapi.exceptions.user.InactiveUserException;
 import javax.swing.text.Document;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -126,6 +129,24 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.name())
                 .errors(List.of(ex.getMessage()))
                 .build();
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> methodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.toList());
+
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.BAD_REQUEST.value())
+                .status(HttpStatus.BAD_REQUEST.name())
+                .errors(errors)
+                .build();
+
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 }
