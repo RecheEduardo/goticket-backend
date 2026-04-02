@@ -2,6 +2,7 @@ package tech.goticket.backendapi.controller;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +55,7 @@ public class OrganizerController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<LoginResponse> createNewOrganizer(@RequestBody CreateOrganizerDTO dto) {
+    public ResponseEntity<LoginResponse> createNewOrganizer(@Valid @RequestBody CreateOrganizerDTO dto) {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
         if (!isCNPJ) { throw new InvalidArgumentException("CNPJ informado é inválido."); }
 

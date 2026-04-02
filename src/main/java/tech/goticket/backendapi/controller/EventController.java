@@ -2,6 +2,7 @@ package tech.goticket.backendapi.controller;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -65,7 +66,7 @@ public class EventController {
     @PostMapping
     @Transactional
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Void> createNewEvent(@RequestBody CreateEventDTO dto, Authentication authentication) {
+    public ResponseEntity<Void> createNewEvent(@Valid @RequestBody CreateEventDTO dto, Authentication authentication) {
 
         UUID loggedUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
