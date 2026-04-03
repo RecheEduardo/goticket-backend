@@ -13,7 +13,7 @@ import java.util.UUID;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
-public class User {
+public abstract class User {
 
     public User () {}
 
@@ -52,4 +52,6 @@ public class User {
     public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(loginRequest.password(), this.password);
     }
+
+    public abstract String displayName();
 }

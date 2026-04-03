@@ -39,4 +39,9 @@ public class Admin extends User{
 
     @Column(name = "last_update_date", nullable = false)
     private Instant lastUpdateDate;
+
+    @Override
+    public String displayName() {
+        return this.getFullName();
+    }
 }

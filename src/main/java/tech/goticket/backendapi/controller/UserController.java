@@ -54,6 +54,7 @@ public class UserController {
 
         var now = Instant.now();
         var expiresIn = 300L;
+        var name = user.get().displayName();
 
         var scope = user.get().getRole().getName();
 
@@ -63,6 +64,7 @@ public class UserController {
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
                 .claim("scope", scope)
+                .claim("name", name)
                 .build();
 
         var jwtvalue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

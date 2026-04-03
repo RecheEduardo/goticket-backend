@@ -43,4 +43,8 @@ public class Organizer extends User{
     @Column(name = "zip_code")
     private String zipCode;
 
+    @Override
+    public String displayName() {
+        return this.getOrganizerName();
+    }
 }
