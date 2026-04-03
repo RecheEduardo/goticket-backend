@@ -38,7 +38,7 @@ public class Client extends User {
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    @Column(name = "full_name")
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(name = "sex", nullable = false)

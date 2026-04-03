@@ -20,6 +20,7 @@ import tech.goticket.backendapi.entities.Organizer;
 import tech.goticket.backendapi.entities.Role;
 import tech.goticket.backendapi.entities.UserStatus;
 import tech.goticket.backendapi.exceptions.InvalidArgumentException;
+import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
 import tech.goticket.backendapi.exceptions.user.DocumentAlreadyExistsException;
 import tech.goticket.backendapi.exceptions.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.repository.RoleRepository;
@@ -105,7 +106,7 @@ public class OrganizerController {
     public ResponseEntity<Organizer> getOrganizerById(@PathVariable String organizerId) {
         UUID uuid = UUID.fromString(organizerId);
         Organizer organizer = this.organizerService.findById(uuid).
-                orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado."));
+                orElseThrow(() -> new ResourceNotFoundException("Usuário organizador não encontrado."));
 
         return ResponseEntity.ok(organizer);
     }
