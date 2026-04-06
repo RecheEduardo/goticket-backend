@@ -51,7 +51,7 @@ public class Event {
     private EventStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "event_visibility", nullable = false)
+    @JoinColumn(name = "visibility_id", nullable = false)
     private EventVisibility eventVisibility;
 
     @ManyToOne
