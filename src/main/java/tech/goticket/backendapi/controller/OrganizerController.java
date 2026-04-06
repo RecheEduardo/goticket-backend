@@ -55,7 +55,6 @@ public class OrganizerController {
     private JwtEncoder jwtEncoder;
 
     @PostMapping
-    @Transactional
     public ResponseEntity<LoginResponse> createNewOrganizer(@Valid @RequestBody CreateOrganizerDTO dto) {
         boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
         if (!isCNPJ) { throw new InvalidArgumentException("CNPJ informado é inválido."); }

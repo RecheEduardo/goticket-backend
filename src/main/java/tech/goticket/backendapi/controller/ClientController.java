@@ -54,7 +54,6 @@ public class ClientController {
     private JwtEncoder jwtEncoder;
 
     @PostMapping
-    @Transactional
     public ResponseEntity<LoginResponse> createNewClient(@Valid @RequestBody CreateClientDTO dto) {
 
         boolean isCpf = ClientService.isCPF(dto.identityDocument());

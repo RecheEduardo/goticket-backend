@@ -57,8 +57,10 @@ public class EventService {
                 events.toList());
     }
 
+    @Transactional
     public void saveEvent(Event event) { eventRepository.save(event); }
 
+    @Transactional
     public Event updateEvent(Long eventId, JsonNode patchNode, UUID userId) {
         if (patchNode.has("eventVisibility")) {
             throw new InvalidArgumentException("A visibilidade do evento não pode ser editada por este endpoint.");
@@ -109,6 +111,7 @@ public class EventService {
         eventRepository.save(event);
     }
 
+    @Transactional
     public void deleteEventById(Long eventId, UUID userId) {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
@@ -126,7 +129,7 @@ public class EventService {
         eventRepository.delete(existingEvent);
     }
 
-    // Método auxiliar para lógica de permissão
+    // Auxiliar para lógica de permissão
     private void validateUserPermission(Event event, UUID userId) {
         User requestUser = userService.findById(userId)
                 .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));

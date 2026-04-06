@@ -2,6 +2,7 @@ package tech.goticket.backendapi.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class OrganizerService {
     @Autowired
     private UserService userService;
 
+    @Transactional
     public void saveOrganizer(Organizer organizer) { organizerRepository.save(organizer); }
 
     public Optional<Organizer> findByCNPJ(String CNPJ) {
@@ -35,6 +37,7 @@ public class OrganizerService {
 
     public Optional<Organizer> findById(UUID organizerId) { return this.organizerRepository.findByUserID(organizerId); }
 
+    @Transactional
     public Organizer updateOrganizer(UUID organizerId, JsonNode patchNode) {
         Organizer existingOrganizer = organizerRepository.findByUserID(organizerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));

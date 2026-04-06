@@ -2,6 +2,7 @@ package tech.goticket.backendapi.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,8 +36,10 @@ public class ClientService {
         return this.clientRepository.findByUserID(clientId);
     }
 
+    @Transactional
     public void saveClient(Client client) { clientRepository.save(client); }
 
+    @Transactional
     public Client updateClient(UUID uuid, JsonNode patchNode) {
         Client existingClient = clientRepository.findByUserID(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado"));

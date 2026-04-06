@@ -63,7 +63,6 @@ public class EventController {
     private JwtEncoder jwtEncoder;
 
     @PostMapping
-    @Transactional
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
     public ResponseEntity<Void> createNewEvent(@Valid @RequestBody CreateEventDTO dto, Authentication authentication) {
 
@@ -160,7 +159,6 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    @Transactional
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
     public ResponseEntity<Long> deleteEventByID(@PathVariable(name = "eventId") Long eventId,
                                                  Authentication authentication){
