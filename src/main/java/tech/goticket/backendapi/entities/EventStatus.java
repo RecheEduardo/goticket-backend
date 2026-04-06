@@ -30,4 +30,16 @@ public class EventStatus {
 
         public long getStatusID() { return statusID; }
     }
+
+    public boolean isApproved() {
+        if (this.statusID != null) {
+            return !this.statusID.equals(Values.PENDING_APPROVAL.getStatusID())
+                    && !this.statusID.equals(Values.DECLINED.getStatusID());
+        }
+        if (this.name != null) {
+            return !this.name.equals(Values.PENDING_APPROVAL.name())
+                    && !this.name.equals(Values.DECLINED.name());
+        }
+        return false;
+    }
 }

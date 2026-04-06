@@ -28,6 +28,9 @@ public class Event {
     @Column(nullable = false)
     private Integer ageRestriction;
 
+    @Column(name = "sales_start_date")
+    private LocalDateTime salesStartDate;
+
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 
@@ -46,6 +49,10 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
     private EventStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "event_visibility", nullable = false)
+    private EventVisibility eventVisibility;
 
     @ManyToOne
     @JoinColumn(name = "organizer_id")

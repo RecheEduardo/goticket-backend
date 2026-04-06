@@ -10,15 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.controller.dto.EventMinDTO;
 import tech.goticket.backendapi.controller.dto.EventMinListDTO;
-import tech.goticket.backendapi.entities.Event;
-import tech.goticket.backendapi.entities.EventStatus;
-import tech.goticket.backendapi.entities.Role;
-import tech.goticket.backendapi.entities.User;
+import tech.goticket.backendapi.entities.*;
 import tech.goticket.backendapi.exceptions.ForbiddenActionException;
 import tech.goticket.backendapi.exceptions.InvalidArgumentException;
 import tech.goticket.backendapi.exceptions.PatchProgressingException;
+import tech.goticket.backendapi.exceptions.ResourceNotFoundException;
 import tech.goticket.backendapi.repository.EventRepository;
 import tech.goticket.backendapi.repository.EventStatusRepository;
+import tech.goticket.backendapi.repository.EventVisibilityRepository;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +32,9 @@ public class EventService {
     private EventStatusRepository eventStatusRepository;
 
     @Autowired
+    private EventVisibilityRepository eventVisibilityRepository;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -41,9 +43,11 @@ public class EventService {
     public Optional<Event> findByEventID(Long eventID) { return eventRepository.findByEventID(eventID); }
 
     @Transactional
-    public EventMinListDTO findApprovedEvents(PageRequest pageRequest) {
+    public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
         var approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
-        var events = eventRepository.findAllEventsByStatus(approvedStatus, pageRequest)
+        var publicStatus = eventVisibilityRepository.findByName(EventVisibility.Values.PUBLIC.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Visibilidade pública não encontrada."));
+        var events = eventRepository.findAllEventsByStatusAndEventVisibility(approvedStatus, publicStatus, pageRequest)
                 .map(EventMinDTO::new);
 
         return new EventMinListDTO(pageRequest.getPageNumber(),
@@ -56,18 +60,14 @@ public class EventService {
     public void saveEvent(Event event) { eventRepository.save(event); }
 
     public Event updateEvent(Long eventId, JsonNode patchNode, UUID userId) {
-        Event existingEvent = eventRepository.findByEventID(eventId)
-                .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
-
-        User requestUser = userService.findById(userId)
-                .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
-
-        boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
-        boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
-
-        if(!isAdmin && !isEventOwner) {
-            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
+        if (patchNode.has("eventVisibility")) {
+            throw new InvalidArgumentException("A visibilidade do evento não pode ser editada por este endpoint.");
         }
+
+        Event existingEvent = eventRepository.findByEventID(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
+
+        validateUserPermission(existingEvent, userId);
 
         try {
             JsonNode existingEventNode = objectMapper.valueToTree(existingEvent);
@@ -87,6 +87,28 @@ public class EventService {
         }
     }
 
+    @Transactional
+    public void updateVisibility(Long eventId, EventVisibility.Values visibilityValue, UUID userId) {
+        Event event = eventRepository.findByEventID(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+
+        validateUserPermission(event, userId);
+
+        if (event.getEventVisibility().getName().equals(visibilityValue.name())) {
+            throw new InvalidArgumentException("O evento já possui a visibilidade informada.");
+        }
+
+        if (!event.getStatus().isApproved()) {
+            throw new ForbiddenActionException("Não é permitido alterar a visibilidade de um evento com status: " + event.getStatus().getName());
+        }
+
+        EventVisibility visibility = eventVisibilityRepository.findByName(visibilityValue.name())
+                .orElseThrow(() -> { return new InvalidArgumentException("Configuração de visibilidade não encontrada no sistema."); });
+
+        event.setEventVisibility(visibility);
+        eventRepository.save(event);
+    }
+
     public void deleteEventById(Long eventId, UUID userId) {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
@@ -102,5 +124,18 @@ public class EventService {
         }
 
         eventRepository.delete(existingEvent);
+    }
+
+    // Método auxiliar para lógica de permissão
+    private void validateUserPermission(Event event, UUID userId) {
+        User requestUser = userService.findById(userId)
+                .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
+
+        boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
+        boolean isEventOwner = requestUser.getUserID().equals(event.getOrganizer().getUserID());
+
+        if(!isAdmin && !isEventOwner) {
+            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
+        }
     }
 }

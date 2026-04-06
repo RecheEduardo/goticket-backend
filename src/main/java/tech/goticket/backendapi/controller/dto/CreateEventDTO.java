@@ -28,5 +28,7 @@ public record CreateEventDTO(
         @Future(message = "A data de término deve ser uma data futura.")
         LocalDateTime endDate,
 
+        LocalDateTime salesStartDate,
+
         UUID organizerID
     ) {}

@@ -7,11 +7,12 @@ import org.springframework.stereotype.Repository;
 import tech.goticket.backendapi.controller.projections.EventMinProjection;
 import tech.goticket.backendapi.entities.Event;
 import tech.goticket.backendapi.entities.EventStatus;
+import tech.goticket.backendapi.entities.EventVisibility;
 
 import java.util.Optional;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     Optional<Event> findByEventID(Long eventID);
-    Page<EventMinProjection> findAllEventsByStatus(EventStatus eventStatus, Pageable pageable);
+    Page<EventMinProjection> findAllEventsByStatusAndEventVisibility(EventStatus eventStatus, EventVisibility eventVisibility, Pageable pageable);
 }
