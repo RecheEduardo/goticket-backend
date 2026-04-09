@@ -35,34 +35,16 @@ import java.util.UUID;
 public class EventController {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private OrganizerService organizerService;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private EventRepository eventRepository;
-
-    @Autowired
     private EventService eventService;
-
-    @Autowired
-    private UserStatusRepository userStatusRepository;
 
     @Autowired
     private EventStatusRepository eventStatusRepository;
 
     @Autowired
     private EventVisibilityRepository eventVisibilityRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtEncoder jwtEncoder;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
