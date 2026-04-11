@@ -38,3 +38,6 @@ src/main/resources/app.pub
 
 ## Environment variables ##
 .env
+
+## Docker generated files ##
+/volume
