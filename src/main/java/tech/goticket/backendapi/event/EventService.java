@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
@@ -15,10 +16,13 @@ import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.event.repository.EventRepository;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;
 import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
+import tech.goticket.backendapi.shared.storage.FileStorageService;
+import tech.goticket.backendapi.shared.storage.FileUpload;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.UserService;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +40,9 @@ public class EventService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -108,6 +115,33 @@ public class EventService {
                 .orElseThrow(() -> { return new InvalidArgumentException("Configuração de visibilidade não encontrada no sistema."); });
 
         event.setEventVisibility(visibility);
+        eventRepository.save(event);
+    }
+
+    @Transactional
+    public void uploadImages(Long eventId, List<MultipartFile> images, int mainImageIndex, UUID userId) {
+        Event event = eventRepository.findByEventID(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+
+        validateUserPermission(event, userId);
+
+        if (mainImageIndex < 0 || mainImageIndex >= images.size()) {
+            throw new InvalidArgumentException("O índice da imagem principal é inválido.");
+        }
+
+        event.getImages().forEach(img -> img.setMainImage(false));
+
+        for (int i = 0; i < images.size(); i++) {
+            String key = fileStorageService.upload(new FileUpload(images.get(i)));
+
+            EventImage eventImage = new EventImage();
+            eventImage.setS3Key(key);
+            eventImage.setMainImage(i == mainImageIndex);
+            eventImage.setEvent(event);
+
+            event.getImages().add(eventImage);
+        }
+
         eventRepository.save(event);
     }
 

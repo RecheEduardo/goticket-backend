@@ -6,12 +6,14 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.dto.CreateEventDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.repository.EventRepository;
@@ -27,6 +29,7 @@ import tech.goticket.backendapi.user.repository.UserStatusRepository;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -138,6 +141,20 @@ public class EventController {
         }
 
         eventService.updateVisibility(eventId, newVisibility, userId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping(value = "/{eventId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Void> uploadEventImages(
+            @PathVariable Long eventId,
+            @RequestParam("images") List<MultipartFile> images,
+            @RequestParam(value = "mainImageIndex", defaultValue = "0") int mainImageIndex,
+            Authentication authentication
+    ) {
+        UUID userId = UUID.fromString(authentication.getName());
+        eventService.uploadImages(eventId, images, mainImageIndex, userId);
 
         return ResponseEntity.ok().build();
     }

@@ -7,6 +7,8 @@ import tech.goticket.backendapi.organizer.Organizer;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_events")
@@ -57,4 +59,7 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "organizer_id")
     private Organizer organizer;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventImage> images = new ArrayList<>();
 }
