@@ -77,7 +77,7 @@ public class OrganizerController {
 
         organizerService.saveOrganizer(organizer);
 
-        var expiresIn = 300L;
+        var expiresIn = 900L;
 
         var scope = organizer.getRole().getName();
 

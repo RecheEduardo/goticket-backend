@@ -82,7 +82,7 @@ public class ClientController {
 
         var scope = client.getRole().getName();
 
-        var expiresIn = 300L;
+        var expiresIn = 900L;
 
         var claims = JwtClaimsSet.builder()
                 .issuer("goticketbackend")
