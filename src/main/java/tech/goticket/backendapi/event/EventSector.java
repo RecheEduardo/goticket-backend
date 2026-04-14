@@ -14,6 +14,9 @@ import java.util.List;
 @Setter
 public class EventSector extends Sector {
 
+    @Column(name = "has_numbered_seats", nullable = false)
+    private boolean hasNumberedSeats;
+
     @OneToMany(mappedBy = "eventSector", cascade = CascadeType.ALL)
     private List<TicketBatch> batches;
 
