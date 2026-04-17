@@ -4,14 +4,51 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.organizer.Organizer;
+import tech.goticket.backendapi.shared.model.status.Status;
 
 import java.time.Instant;
+import java.util.Locale;
 
 @Entity
 @Table(name = "tb_venues")
 @Getter
 @Setter
 public class Venue {
+
+    public Venue() {}
+
+    public Venue(
+            String name,
+            String legalName,
+            String CNPJ,
+            String description,
+            String streetAddress,
+            String streetAddressNumber,
+            String neighborhood,
+            String city,
+            String state,
+            String country,
+            Instant registerDate,
+            Instant lastUpdateDate,
+            Status status,
+            Organizer organizer
+    ) {
+        this.name = name;
+        this.legalName = legalName;
+        this.CNPJ = CNPJ;
+        this.description = description;
+        this.streetAddress = streetAddress;
+        this.streetAddressNumber = streetAddressNumber;
+        this.neighborhood = neighborhood;
+        this.city = city;
+        this.state = state;
+        this.country = country;
+        this.registerDate = registerDate;
+        this.lastUpdateDate = lastUpdateDate;
+        this.status = status;
+        this.organizer = organizer;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "venue_id", nullable = false)
@@ -23,8 +60,8 @@ public class Venue {
     @Column(name = "legal_name", nullable = false)
     private String legalName;
 
-    @Column(name = "identity_document", nullable = false)
-    private String identityDocument;
+    @Column(name = "cnpj", nullable = false)
+    private String CNPJ;
 
     @Column
     private String description;
@@ -58,6 +95,10 @@ public class Venue {
 
     @Column(name = "last_update_date", nullable = false)
     private Instant lastUpdateDate;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private Status status;
 
     @ManyToOne
     @JoinColumn(name = "organizer_id")
