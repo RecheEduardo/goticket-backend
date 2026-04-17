@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Check;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
-import tech.goticket.backendapi.user.UserStatus;
+import tech.goticket.backendapi.shared.model.status.Status;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,7 +24,7 @@ public class Client extends User {
             String email,
             String password,
             Role role,
-            UserStatus userStatus,
+            Status userStatus,
             String fullName,
             Integer sex,
             String identityDocument,

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.user.dto.LoginRequest;
 
 import java.util.UUID;
@@ -21,7 +22,7 @@ public abstract class User {
             String email,
             String password,
             Role userRole,
-            UserStatus userStatus
+            Status userStatus
     ) {
         this.email = email;
         this.password = password;
@@ -47,7 +48,7 @@ public abstract class User {
 
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
-    private UserStatus status;
+    private Status status;
 
     public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(loginRequest.password(), this.password);

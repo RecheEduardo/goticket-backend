@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.user.repository.RoleRepository;
-import tech.goticket.backendapi.user.repository.UserStatusRepository;
+import tech.goticket.backendapi.shared.model.status.StatusRepository;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class AdminController {
     private RoleRepository roleRepository;
 
     @Autowired
-    private UserStatusRepository userStatusRepository;
+    private StatusRepository statusRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;

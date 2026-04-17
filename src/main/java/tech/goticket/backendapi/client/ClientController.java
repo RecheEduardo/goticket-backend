@@ -19,8 +19,8 @@ import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.shared.exception.user.DocumentAlreadyExistsException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.user.repository.RoleRepository;
-import tech.goticket.backendapi.user.UserStatus;
-import tech.goticket.backendapi.user.repository.UserStatusRepository;
+import tech.goticket.backendapi.shared.model.status.Status;
+import tech.goticket.backendapi.shared.model.status.StatusRepository;
 import tech.goticket.backendapi.user.UserService;
 
 import java.net.URI;
@@ -42,7 +42,7 @@ public class ClientController {
     private ClientService clientService;
 
     @Autowired
-    private UserStatusRepository userStatusRepository;
+    private StatusRepository statusRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -63,7 +63,7 @@ public class ClientController {
                 .ifPresent(client -> { throw new DocumentAlreadyExistsException("Este CPF já está cadastrado."); });
 
         Role clientRole = roleRepository.findByName(Role.Values.CLIENT.name());
-        UserStatus clientStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
+        Status clientStatus = statusRepository.findByName(Status.Values.ACTIVE.name());
         Instant now = Instant.now();
 
         var client = new Client(

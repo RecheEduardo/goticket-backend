@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.user.dto.LoginRequest;
 import tech.goticket.backendapi.user.dto.LoginResponse;
 import tech.goticket.backendapi.user.dto.UserDTO;
@@ -44,7 +45,7 @@ public class UserController {
             throw new BadCredentialsException("E-mail ou Senha inválidos!");
         }
 
-        if (user.get().getStatus().getName().equals(UserStatus.Values.INACTIVE.name())) {
+        if (user.get().getStatus().getName().equals(Status.Values.INACTIVE.name())) {
             throw new InactiveUserException("Acesso negado, por favor entrar em contato com o suporte da plataforma.");
         }
 

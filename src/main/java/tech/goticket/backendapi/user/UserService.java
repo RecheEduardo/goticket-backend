@@ -4,10 +4,11 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.user.dto.UserDTO;
 import tech.goticket.backendapi.user.dto.UserListDTO;
 import tech.goticket.backendapi.user.repository.UserRepository;
-import tech.goticket.backendapi.user.repository.UserStatusRepository;
+import tech.goticket.backendapi.shared.model.status.StatusRepository;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private UserStatusRepository userStatusRepository;
+    private StatusRepository statusRepository;
 
     @Transactional
     public UserListDTO findAll(PageRequest request) {
@@ -37,7 +38,7 @@ public class UserService {
 
     @Transactional
     public UserListDTO findActiveUsers(PageRequest request) {
-        var activeStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
+        var activeStatus = statusRepository.findByName(Status.Values.ACTIVE.name());
         var users = userRepository.findByStatus(activeStatus, request)
                 .map(user -> new UserDTO(user.getUserID(),
                         user.getEmail(),

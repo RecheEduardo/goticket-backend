@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.organizer.dto.CreateOrganizerDTO;
 import tech.goticket.backendapi.user.dto.LoginResponse;
 import tech.goticket.backendapi.user.Role;
-import tech.goticket.backendapi.user.UserStatus;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.shared.exception.user.DocumentAlreadyExistsException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
 import tech.goticket.backendapi.user.repository.RoleRepository;
-import tech.goticket.backendapi.user.repository.UserStatusRepository;
+import tech.goticket.backendapi.shared.model.status.StatusRepository;
 import tech.goticket.backendapi.user.UserService;
 
 import java.net.URI;
@@ -43,7 +43,7 @@ public class OrganizerController {
     private OrganizerService organizerService;
 
     @Autowired
-    private UserStatusRepository userStatusRepository;
+    private StatusRepository statusRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -63,7 +63,7 @@ public class OrganizerController {
                 .ifPresent(organizer -> { throw new DocumentAlreadyExistsException("Este CNPJ já está cadastrado."); });
 
         Role orgazinerRole = roleRepository.findByName(Role.Values.ORGANIZER.name());
-        UserStatus organizerStatus = userStatusRepository.findByName(UserStatus.Values.ACTIVE.name());
+        Status organizerStatus = statusRepository.findByName(Status.Values.ACTIVE.name());
         Instant now = Instant.now();
 
         Organizer organizer = new Organizer();

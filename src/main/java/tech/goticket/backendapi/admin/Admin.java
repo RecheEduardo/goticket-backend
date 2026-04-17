@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
-import tech.goticket.backendapi.user.UserStatus;
+import tech.goticket.backendapi.shared.model.status.Status;
 
 import java.time.Instant;
 
@@ -22,7 +22,7 @@ public class Admin extends User {
             String email,
             String password,
             Role role,
-            UserStatus userStatus,
+            Status userStatus,
             String fullName,
             Instant registerDate,
             Instant lastUpdateDate
