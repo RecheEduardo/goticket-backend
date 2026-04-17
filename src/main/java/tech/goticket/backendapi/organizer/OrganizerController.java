@@ -27,6 +27,8 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
 
+import tech.goticket.backendapi.shared.utils.DocumentValidator;
+
 @RestController
 @RequestMapping(value = "/organizers")
 public class OrganizerController {
@@ -51,7 +53,7 @@ public class OrganizerController {
 
     @PostMapping
     public ResponseEntity<LoginResponse> createNewOrganizer(@Valid @RequestBody CreateOrganizerDTO dto) {
-        boolean isCNPJ = OrganizerService.isCNPJ(dto.CNPJ());
+        boolean isCNPJ = DocumentValidator.isCNPJ(dto.CNPJ());
         if (!isCNPJ) { throw new InvalidArgumentException("CNPJ informado é inválido."); }
 
         userService.findByEmail(dto.email())

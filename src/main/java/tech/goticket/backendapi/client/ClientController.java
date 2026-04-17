@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.client.dto.CreateClientDTO;
+import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.dto.LoginResponse;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
@@ -52,7 +53,7 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<LoginResponse> createNewClient(@Valid @RequestBody CreateClientDTO dto) {
 
-        boolean isCpf = ClientService.isCPF(dto.identityDocument());
+        boolean isCpf = DocumentValidator.isCPF(dto.identityDocument());
         if (!isCpf) { throw new InvalidArgumentException("CPF informado é inválido."); }
 
         userService.findByEmail(dto.email())
