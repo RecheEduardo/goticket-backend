@@ -12,6 +12,9 @@ public class EventMinDTO {
     private Long eventID;
     private String title;
     private LocalDateTime startDate;
+    private String venueName;
+    private String venueCity;
+    private String venueState;
 
     public EventMinDTO() {}
 
@@ -19,5 +22,8 @@ public class EventMinDTO {
         this.eventID = eventMinProjection.getEventID();
         this.title = eventMinProjection.getTitle();
         this.startDate = eventMinProjection.getStartDate();
+        this.venueName = eventMinProjection.getVenue().getName();
+        this.venueCity = eventMinProjection.getVenue().getCity();
+        this.venueState = eventMinProjection.getVenue().getState();
     }
 }

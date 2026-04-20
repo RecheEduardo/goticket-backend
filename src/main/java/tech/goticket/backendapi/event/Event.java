@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.organizer.Organizer;
+import tech.goticket.backendapi.venue.Venue;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -59,6 +60,10 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "organizer_id")
     private Organizer organizer;
+
+    @ManyToOne
+    @JoinColumn(name = "venue_id")
+    private Venue venue;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventImage> images = new ArrayList<>();
