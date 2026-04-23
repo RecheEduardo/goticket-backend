@@ -1,7 +1,7 @@
 services:
   localstack:
     container_name: localstack_s3
-    image: localstack/localstack:3.0.2  # Usando uma versão estável específica
+    image: localstack/localstack:3.0.2
     ports:
       - "4566:4566"
     environment:
@@ -10,4 +10,5 @@ services:
       - ACTIVATE_PRO=0
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock" # Essencial para o LocalStack funcionar
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
