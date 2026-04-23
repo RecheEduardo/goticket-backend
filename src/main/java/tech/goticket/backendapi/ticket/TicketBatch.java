@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.ticket;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,7 @@ public class TicketBatch {
     private Integer soldTickets;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "event_sector_id", nullable = false)
     private EventSector eventSector;
 

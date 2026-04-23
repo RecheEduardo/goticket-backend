@@ -58,12 +58,15 @@ public class Event {
     private EventVisibility eventVisibility;
 
     @ManyToOne
-    @JoinColumn(name = "organizer_id")
+    @JoinColumn(name = "organizer_id", nullable = false)
     private Organizer organizer;
 
     @ManyToOne
-    @JoinColumn(name = "venue_id")
+    @JoinColumn(name = "venue_id", nullable = false)
     private Venue venue;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventSector> sectors = new ArrayList<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventImage> images = new ArrayList<>();

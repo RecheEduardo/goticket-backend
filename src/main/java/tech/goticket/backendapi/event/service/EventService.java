@@ -1,4 +1,4 @@
-package tech.goticket.backendapi.event;
+package tech.goticket.backendapi.event.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,8 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import tech.goticket.backendapi.event.Event;
+import tech.goticket.backendapi.event.EventImage;
+import tech.goticket.backendapi.event.EventStatus;
+import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
+import tech.goticket.backendapi.event.repository.EventMinDetailsRepository;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
@@ -33,6 +38,9 @@ public class EventService {
     private EventRepository eventRepository;
 
     @Autowired
+    private EventMinDetailsRepository eventMinDetailsRepository;
+
+    @Autowired
     private EventStatusRepository eventStatusRepository;
 
     @Autowired
@@ -49,12 +57,24 @@ public class EventService {
 
     public Optional<Event> findByEventID(Long eventID) { return eventRepository.findByEventID(eventID); }
 
-    @Transactional
+    /*@Transactional
     public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
         var approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
         var publicStatus = eventVisibilityRepository.findByName(EventVisibility.Values.PUBLIC.name())
                 .orElseThrow(() -> new ResourceNotFoundException("Visibilidade pública não encontrada."));
         var events = eventRepository.findAllEventsByStatusAndEventVisibility(approvedStatus, publicStatus, pageRequest)
+                .map(EventMinDTO::new);
+
+        return new EventMinListDTO(pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                events.getTotalPages(),
+                events.getTotalElements(),
+                events.toList());
+    }*/
+
+    @Transactional
+    public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
+        var events = eventMinDetailsRepository.findAll(pageRequest)
                 .map(EventMinDTO::new);
 
         return new EventMinListDTO(pageRequest.getPageNumber(),

@@ -16,6 +16,7 @@ import tech.goticket.backendapi.event.dto.CreateEventDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;
 import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
+import tech.goticket.backendapi.event.service.EventService;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;

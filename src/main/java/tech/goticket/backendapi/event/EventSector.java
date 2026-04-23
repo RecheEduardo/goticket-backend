@@ -1,10 +1,12 @@
 package tech.goticket.backendapi.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.sector.Sector;
 import tech.goticket.backendapi.ticket.TicketBatch;
+import tech.goticket.backendapi.venue.VenueSector;
 
 import java.util.List;
 
@@ -21,8 +23,14 @@ public class EventSector extends Sector {
     private List<TicketBatch> batches;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "venue_sector_id", nullable = false)
+    private VenueSector venueSector;
 
     public Integer getTotalTickets() {
         return batches.stream()
