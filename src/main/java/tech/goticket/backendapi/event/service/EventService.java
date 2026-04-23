@@ -99,18 +99,9 @@ public class EventService {
         validateUserPermission(existingEvent, userId);
 
         try {
-            JsonNode existingEventNode = objectMapper.valueToTree(existingEvent);
+            objectMapper.readerForUpdating(existingEvent).readValue(patchNode);
 
-            JsonNode patchedNode = objectMapper.readerForUpdating(existingEventNode)
-                    .readValue(patchNode);
-
-            Event updatedEvent = objectMapper.treeToValue(patchedNode, Event.class);
-
-            if(!updatedEvent.getEventID().equals(existingEvent.getEventID())) {
-                updatedEvent.setEventID(existingEvent.getEventID());
-            }
-
-            return eventRepository.save(updatedEvent);
+            return eventRepository.save(existingEvent);
         } catch (Exception e) {
             throw new PatchProgressingException("Erro ao atualizar evento.");
         }
