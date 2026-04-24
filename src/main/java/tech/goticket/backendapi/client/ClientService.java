@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import tech.goticket.backendapi.client.dto.ClientListDTO;
+import tech.goticket.backendapi.client.dto.ClientMinDTO;
 import tech.goticket.backendapi.user.UserService;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
@@ -33,6 +36,20 @@ public class ClientService {
 
     public Optional<Client> findById(UUID clientId) {
         return this.clientRepository.findByUserID(clientId);
+    }
+
+    @Transactional
+    public ClientListDTO findAll(PageRequest pageRequest) {
+        var clients = clientRepository.findAll(pageRequest)
+                .map(ClientMinDTO::new);
+
+        return new ClientListDTO(
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                clients.getTotalPages(),
+                clients.getTotalElements(),
+                clients.toList()
+        );
     }
 
     @Transactional

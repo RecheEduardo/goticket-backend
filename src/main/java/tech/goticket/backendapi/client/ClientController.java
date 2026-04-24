@@ -3,6 +3,8 @@ package tech.goticket.backendapi.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
+import tech.goticket.backendapi.client.dto.ClientListDTO;
 import tech.goticket.backendapi.client.dto.CreateClientDTO;
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.user.Role;
@@ -97,6 +100,17 @@ public class ClientController {
 
         return ResponseEntity.created(URI.create("/clients/" + client.getUserID()))
                 .body(new LoginResponse(jwtValue, expiresIn));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<ClientListDTO> listClients(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+        ClientListDTO clients = clientService.findAll(
+                PageRequest.of(page, pageSize, Sort.Direction.ASC, "fullName"));
+
+        return ResponseEntity.ok(clients);
     }
 
     @GetMapping("/{clientId}")
