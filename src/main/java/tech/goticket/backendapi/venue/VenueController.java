@@ -1,7 +1,10 @@
 package tech.goticket.backendapi.venue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -15,6 +18,7 @@ import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.model.status.StatusRepository;
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.venue.dto.CreateVenueDTO;
+import tech.goticket.backendapi.venue.dto.VenueListDTO;
 
 import java.net.URI;
 import java.time.Instant;
@@ -32,6 +36,17 @@ public class VenueController {
 
     @Autowired
     private StatusRepository statusRepository;
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<VenueListDTO> listVenues(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+        var venues = venueService.findAll(
+                PageRequest.of(page, pageSize, Sort.Direction.ASC, "name"));
+
+        return ResponseEntity.ok(venues);
+    }
 
     @GetMapping("/{venueId}")
     public ResponseEntity<Venue> findVenueById(@PathVariable Long venueId) {
@@ -88,9 +103,31 @@ public class VenueController {
                 venueStatus,
                 organizer
         );
+        newVenue.setZipCode(dto.zipCode());
 
         venueService.saveVenue(newVenue);
 
         return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueID())).build();
+    }
+
+    @PatchMapping(value = "/{venueId}", consumes = "application/merge-patch+json")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Venue> updateVenue(@PathVariable Long venueId,
+                                             @RequestBody JsonNode patchNode,
+                                             Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        Venue venue = venueService.updateVenue(venueId, patchNode, userId);
+
+        return ResponseEntity.ok(venue);
+    }
+
+    @DeleteMapping("/{venueId}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Long> deleteVenueById(@PathVariable Long venueId,
+                                                Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        venueService.deleteVenue(venueId, userId);
+
+        return ResponseEntity.ok(venueId);
     }
 }
