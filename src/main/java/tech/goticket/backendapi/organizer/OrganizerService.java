@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import tech.goticket.backendapi.organizer.dto.OrganizerListDTO;
+import tech.goticket.backendapi.organizer.dto.OrganizerMinDTO;
 import tech.goticket.backendapi.user.UserService;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
@@ -35,6 +38,20 @@ public class OrganizerService {
     }
 
     public Optional<Organizer> findById(UUID organizerId) { return this.organizerRepository.findByUserID(organizerId); }
+
+    @Transactional
+    public OrganizerListDTO findAll(PageRequest pageRequest) {
+        var organizers = organizerRepository.findAll(pageRequest)
+                .map(OrganizerMinDTO::new);
+
+        return new OrganizerListDTO(
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                organizers.getTotalPages(),
+                organizers.getTotalElements(),
+                organizers.toList()
+        );
+    }
 
     @Transactional
     public Organizer updateOrganizer(UUID organizerId, JsonNode patchNode) {

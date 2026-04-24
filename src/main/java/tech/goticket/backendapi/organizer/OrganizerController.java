@@ -4,6 +4,8 @@ package tech.goticket.backendapi.organizer;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.organizer.dto.CreateOrganizerDTO;
+import tech.goticket.backendapi.organizer.dto.OrganizerListDTO;
 import tech.goticket.backendapi.user.dto.LoginResponse;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.shared.model.status.Status;
@@ -95,6 +98,17 @@ public class OrganizerController {
 
         return ResponseEntity.created(URI.create("/organizers/" + organizer.getUserID()))
                 .body(new LoginResponse(jwtValue, expiresIn));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<OrganizerListDTO> listOrganizers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+        OrganizerListDTO organizers = organizerService.findAll(
+                PageRequest.of(page, pageSize, Sort.Direction.ASC, "organizerName"));
+
+        return ResponseEntity.ok(organizers);
     }
 
     @GetMapping("/{organizerId}")
