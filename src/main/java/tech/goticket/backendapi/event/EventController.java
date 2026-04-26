@@ -162,7 +162,7 @@ public class EventController {
         UUID userId = UUID.fromString(authentication.getName());
         eventService.uploadImages(eventId, images, mainImageIndex, userId);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{eventId}")
@@ -174,5 +174,17 @@ public class EventController {
 
         eventService.deleteEventById(eventId, uuid);
         return ResponseEntity.ok(eventId);
+    }
+
+    @DeleteMapping("/{eventId}/images/{imageKey}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<String> deleteEventImageByKey(@PathVariable(name = "eventId") Long eventId,
+                                                @PathVariable(name = "imageKey") String imageKey,
+                                                Authentication authentication){
+        var userId = authentication.getName();
+        UUID uuid = UUID.fromString(userId);
+
+        eventService.deleteEventImageByKey(eventId, imageKey, uuid);
+        return ResponseEntity.ok(imageKey);
     }
 }

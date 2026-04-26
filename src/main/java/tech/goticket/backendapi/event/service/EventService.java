@@ -9,18 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.Event;
 import tech.goticket.backendapi.event.EventImage;
-import tech.goticket.backendapi.event.EventStatus;
 import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
-import tech.goticket.backendapi.event.repository.EventMinDetailsRepository;
+import tech.goticket.backendapi.event.repository.*;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
-import tech.goticket.backendapi.event.repository.EventRepository;
-import tech.goticket.backendapi.event.repository.EventStatusRepository;
-import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
 import tech.goticket.backendapi.shared.storage.FileStorageService;
 import tech.goticket.backendapi.shared.storage.FileUpload;
 import tech.goticket.backendapi.user.Role;
@@ -45,6 +41,9 @@ public class EventService {
 
     @Autowired
     private EventVisibilityRepository eventVisibilityRepository;
+
+    @Autowired
+    private EventImageRepository eventImageRepository;
 
     @Autowired
     private UserService userService;
@@ -173,17 +172,26 @@ public class EventService {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
 
-        User requestUser = userService.findById(userId)
-                .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
-
-        boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
-        boolean isEventOwner = requestUser.getUserID().equals(existingEvent.getOrganizer().getUserID());
-
-        if(!isAdmin && !isEventOwner) {
-            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
-        }
+        validateUserPermission(existingEvent, userId);
 
         eventRepository.delete(existingEvent);
+    }
+
+    @Transactional
+    public void deleteEventImageByKey(Long eventId, String imageKey, UUID userId) {
+        Event existingEvent = eventRepository.findByEventID(eventId)
+                .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
+
+        validateUserPermission(existingEvent, userId);
+
+        var eventImages = eventImageRepository.findByEvent_EventID(eventId);
+
+        EventImage removedImage = eventImages.stream()
+                .filter(i -> i.getS3Key().equals(imageKey))
+                .findFirst()
+                .orElseThrow(() -> new InvalidArgumentException("Key de imagem não encontrada neste evento."));
+
+        eventImageRepository.delete(removedImage);
     }
 
     // Auxiliar para lógica de permissão
