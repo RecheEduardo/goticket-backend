@@ -452,6 +452,7 @@ SELECT
     e.event_id,
     e.title,
     e.start_date,
+    ec.category_id AS category_id,
 	ec.name AS category_name,
     v.name  AS venue_name,
     v.city  AS venue_city,

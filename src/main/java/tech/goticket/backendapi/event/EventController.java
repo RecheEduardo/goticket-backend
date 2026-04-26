@@ -4,6 +4,7 @@ package tech.goticket.backendapi.event;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -103,9 +104,19 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "page",defaultValue = "0") int page,
+    public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "categoryId", required = false) Long categoryId,
+                                                                    @RequestParam(name = "page",defaultValue = "0") int page,
                                                                     @RequestParam(name = "pageSize",defaultValue = "10") int pageSize){
-        var events = eventService.findApprovedPublicEvents(PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate"));
+
+        EventMinListDTO events;
+        PageRequest pageRequest = PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate");
+
+        if (categoryId != null) {
+            events = eventService.findApprovedPublicEventsByCategory(categoryId, pageRequest);
+        }
+        else {
+            events = eventService.findApprovedPublicEvents(pageRequest);
+        }
 
         return ResponseEntity.ok(events);
     }

@@ -14,6 +14,7 @@ public class EventMinDTO {
     private Long eventID;
     private String title;
     private LocalDateTime startDate;
+    private Long categoryId;
     private String categoryName;
     private String venueName;
     private String venueCity;
@@ -36,6 +37,7 @@ public class EventMinDTO {
         this.eventID = eventMinDetailsView.getEventId();
         this.title = eventMinDetailsView.getTitle();
         this.startDate = eventMinDetailsView.getStartDate();
+        this.categoryId = eventMinDetailsView.getCategoryId();
         this.categoryName = eventMinDetailsView.getCategoryName();
         this.venueName = eventMinDetailsView.getVenueName();
         this.venueCity = eventMinDetailsView.getVenueCity();

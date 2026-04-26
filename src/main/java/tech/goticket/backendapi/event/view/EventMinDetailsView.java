@@ -26,6 +26,9 @@ public class EventMinDetailsView {
     @Column(name = "start_date")
     private LocalDateTime startDate;
 
+    @Column(name = "category_id")
+    private Long categoryId;
+
     @Column(name = "category_name")
     private String categoryName;
 

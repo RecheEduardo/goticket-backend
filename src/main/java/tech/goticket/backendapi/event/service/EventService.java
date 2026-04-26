@@ -85,6 +85,18 @@ public class EventService {
     }
 
     @Transactional
+    public EventMinListDTO findApprovedPublicEventsByCategory(Long categoryId, PageRequest pageRequest) {
+        var events = eventMinDetailsRepository.findAllByCategoryId(categoryId, pageRequest)
+                .map(EventMinDTO::new);
+
+        return new EventMinListDTO(pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                events.getTotalPages(),
+                events.getTotalElements(),
+                events.toList());
+    }
+
+    @Transactional
     public void saveEvent(Event event) { eventRepository.save(event); }
 
     @Transactional
