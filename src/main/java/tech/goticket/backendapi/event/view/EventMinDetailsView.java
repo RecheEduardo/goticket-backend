@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Subselect("SELECT * FROM vw_event_min_details") // Hibernate lê daqui, mas não cria tabela
+@Subselect("SELECT * FROM vw_event_min_details")
 @Synchronize("vw_event_min_details")
 @Immutable
 @Getter
@@ -25,6 +25,9 @@ public class EventMinDetailsView {
 
     @Column(name = "start_date")
     private LocalDateTime startDate;
+
+    @Column(name = "category_name")
+    private String categoryName;
 
     @Column(name = "venue_name")
     private String venueName;

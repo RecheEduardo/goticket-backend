@@ -50,6 +50,10 @@ public class Event {
     private Instant lastUpdateDate;
 
     @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private EventCategory category;
+
+    @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
     private EventStatus status;
 
