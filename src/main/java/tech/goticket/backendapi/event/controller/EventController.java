@@ -1,7 +1,10 @@
 package tech.goticket.backendapi.event.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +19,7 @@ import tech.goticket.backendapi.event.Event;
 import tech.goticket.backendapi.event.EventStatus;
 import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.CreateEventDTO;
+import tech.goticket.backendapi.event.dto.EventImageOrderItemDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;
 import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
@@ -46,6 +50,9 @@ public class EventController {
 
     @Autowired
     private EventVisibilityRepository eventVisibilityRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
@@ -153,18 +160,30 @@ public class EventController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping(value = "/{eventId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{eventId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Void> uploadEventImages(
+    public ResponseEntity<Void> replaceEventImages(
             @PathVariable Long eventId,
-            @RequestParam("images") List<MultipartFile> images,
-            @RequestParam(value = "mainImageIndex", defaultValue = "0") int mainImageIndex,
+            @RequestParam("metadata") String metadataJson,
+            @RequestParam(value = "newImages", required = false) List<MultipartFile> newImages,
             Authentication authentication
     ) {
         UUID userId = UUID.fromString(authentication.getName());
-        eventService.uploadImages(eventId, images, mainImageIndex, userId);
 
-        return ResponseEntity.noContent().build();
+        // Desserializa o JSON de metadata
+        List<EventImageOrderItemDTO> metadata;
+        try {
+            metadata = objectMapper.readValue(
+                    metadataJson,
+                    new TypeReference<List<EventImageOrderItemDTO>>() {}
+            );
+        } catch (JsonProcessingException e) {
+            throw new InvalidArgumentException("JSON de metadata inválido.");
+        }
+
+        eventService.replaceImages(eventId, metadata, newImages, userId);
+
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{eventId}")

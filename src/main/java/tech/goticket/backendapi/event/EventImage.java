@@ -17,8 +17,8 @@ public class EventImage {
     @Column(name = "s3_key", nullable = false)
     private String s3Key;
 
-    @Column(name = "is_main_image")
-    private boolean isMainImage;
+    @Column(name = "ordination", nullable = false)
+    private Integer ordination;
 
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)

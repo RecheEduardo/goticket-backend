@@ -30,4 +30,8 @@ public class FileStorageService {
             throw new RuntimeException("Não foi possivel realizar o upload do arquivo.");
         }
     }
+
+    public void delete(String s3Key) {
+        template.deleteObject(bucket, s3Key);
+    }
 }

@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.Event;
 import tech.goticket.backendapi.event.EventImage;
 import tech.goticket.backendapi.event.EventVisibility;
+import tech.goticket.backendapi.event.dto.EventImageOrderItemDTO;
 import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.repository.*;
@@ -23,9 +24,8 @@ import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.UserService;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -141,28 +141,79 @@ public class EventService {
     }
 
     @Transactional
-    public void uploadImages(Long eventId, List<MultipartFile> images, int mainImageIndex, UUID userId) {
+    public void replaceImages(Long eventId,
+                              List<EventImageOrderItemDTO> metadata,
+                              List<MultipartFile> newImages,
+                              UUID userId) {
+
         Event event = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
 
         validateUserPermission(event, userId);
 
-        if (mainImageIndex < 0 || mainImageIndex >= images.size()) {
-            throw new InvalidArgumentException("O índice da imagem principal é inválido.");
+        if (metadata == null || metadata.isEmpty()) {
+            throw new InvalidArgumentException("A lista de imagens não pode ser vazia.");
         }
 
-        event.getImages().forEach(img -> img.setMainImage(false));
+        long newCount = metadata.stream().filter(m -> "new".equals(m.type())).count();
+        int actualNewFiles = (newImages != null) ? newImages.size() : 0;
 
-        for (int i = 0; i < images.size(); i++) {
-            String key = fileStorageService.upload(new FileUpload(images.get(i)));
-
-            EventImage eventImage = new EventImage();
-            eventImage.setS3Key(key);
-            eventImage.setMainImage(i == mainImageIndex);
-            eventImage.setEvent(event);
-
-            event.getImages().add(eventImage);
+        if (newCount != actualNewFiles) {
+            throw new InvalidArgumentException(
+                    "O metadata referencia " + newCount +
+                            " imagem(ns) nova(s), mas foram enviado(s) " + actualNewFiles + " arquivo(s)."
+            );
         }
+
+        Map<String, EventImage> existingByKey = event.getImages().stream()
+                .collect(Collectors.toMap(EventImage::getS3Key, img -> img));
+
+        Set<String> keysToKeep = metadata.stream()
+                .filter(m -> "existing".equals(m.type()))
+                .map(EventImageOrderItemDTO::s3Key)
+                .collect(Collectors.toSet());
+
+        List<EventImage> toRemove = event.getImages().stream()
+                .filter(img -> !keysToKeep.contains(img.getS3Key()))
+                .toList();
+
+        for (EventImage img : toRemove) {
+            fileStorageService.delete(img.getS3Key());
+            event.getImages().remove(img);
+        }
+
+        List<EventImage> updatedImages = new ArrayList<>();
+
+        for (int i = 0; i < metadata.size(); i++) {
+            EventImageOrderItemDTO item = metadata.get(i);
+
+            if ("existing".equals(item.type())) {
+                EventImage existing = existingByKey.get(item.s3Key());
+                if (existing == null) {
+                    throw new InvalidArgumentException(
+                            "Imagem com s3Key '" + item.s3Key() + "' não pertence a este evento."
+                    );
+                }
+                existing.setOrdination(i);
+                updatedImages.add(existing);
+
+            } else if ("new".equals(item.type())) {
+                MultipartFile file = newImages.get(item.fileIndex());
+                String key = fileStorageService.upload(new FileUpload(file));
+
+                EventImage newImage = new EventImage();
+                newImage.setS3Key(key);
+                newImage.setOrdination(i);
+                newImage.setEvent(event);
+                updatedImages.add(newImage);
+
+            } else {
+                throw new InvalidArgumentException("Tipo de item inválido: " + item.type());
+            }
+        }
+
+        event.getImages().clear();
+        event.getImages().addAll(updatedImages);
 
         eventRepository.save(event);
     }

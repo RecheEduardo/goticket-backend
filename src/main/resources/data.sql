@@ -469,7 +469,7 @@ INNER JOIN (
     GROUP BY es.event_id
 ) prices ON prices.event_id = e.event_id
 LEFT JOIN (
-    SELECT event_id, ARRAY_AGG(s3_key ORDER BY is_main_image DESC) AS image_keys
+    SELECT event_id, ARRAY_AGG(s3_key ORDER BY ordination ASC) AS image_keys
     FROM tb_event_images
     GROUP BY event_id
 ) img ON img.event_id = e.event_id
@@ -484,8 +484,8 @@ CREATE INDEX IF NOT EXISTS idx_ticket_batches_sector_price
     ON tb_ticket_batches(event_sector_id, price);
 
 -- para a subquery de imagens
-CREATE INDEX IF NOT EXISTS idx_event_images_event_main
-    ON tb_event_images(event_id, is_main_image DESC);
+CREATE INDEX IF NOT EXISTS idx_event_images_event_ordination
+    ON tb_event_images(event_id, ordination ASC);
 
 -- para o filtro principal
 CREATE INDEX IF NOT EXISTS idx_events_status_visibility
