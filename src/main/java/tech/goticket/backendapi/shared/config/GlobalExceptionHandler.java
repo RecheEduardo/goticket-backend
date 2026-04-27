@@ -12,9 +12,7 @@ import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
-import tech.goticket.backendapi.shared.exception.user.DocumentAlreadyExistsException;
-import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
-import tech.goticket.backendapi.shared.exception.user.InactiveUserException;
+import tech.goticket.backendapi.shared.exception.user.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +41,30 @@ public class GlobalExceptionHandler {
                 .code(HttpStatus.FORBIDDEN.value())
                 .status(HttpStatus.FORBIDDEN.name())
                 .errors(List.of("Acesso negado: você não tem permissão para acessar este recurso."))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
+        ApiError apiError = ApiError
+                .builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.UNAUTHORIZED.value())
+                .status(HttpStatus.UNAUTHORIZED.name())
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(RefreshTokenReuseException.class)
+    public ResponseEntity<ApiError> handleRefreshTokenReuse(RefreshTokenReuseException ex) {
+        ApiError apiError = ApiError
+                .builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.FORBIDDEN.value())
+                .status(HttpStatus.FORBIDDEN.name())
+                .errors(List.of(ex.getMessage()))
                 .build();
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }

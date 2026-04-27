@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import tech.goticket.backendapi.shared.exception.user.InactiveUserException;
 import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.user.dto.LoginRequest;
 
@@ -55,4 +56,10 @@ public abstract class User {
     }
 
     public abstract String displayName();
+
+    public void validateUserStatus() {
+        if (this.getStatus().getName().equals(Status.Values.INACTIVE.name())) {
+            throw new InactiveUserException("Acesso negado, por favor entrar em contato com o suporte da plataforma.");
+        }
+    }
 }

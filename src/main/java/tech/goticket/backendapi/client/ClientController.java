@@ -25,6 +25,7 @@ import tech.goticket.backendapi.user.repository.RoleRepository;
 import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.model.status.StatusRepository;
 import tech.goticket.backendapi.user.UserService;
+import tech.goticket.backendapi.user.token.AuthTokenService;
 
 import java.net.URI;
 import java.time.Instant;
@@ -51,7 +52,7 @@ public class ClientController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtEncoder jwtEncoder;
+    private AuthTokenService authTokenService;
 
     @PostMapping
     public ResponseEntity<LoginResponse> createNewClient(@Valid @RequestBody CreateClientDTO dto) {
@@ -84,22 +85,8 @@ public class ClientController {
 
         clientService.saveClient(client);
 
-        var scope = client.getRole().getName();
-
-        var expiresIn = 900L;
-
-        var claims = JwtClaimsSet.builder()
-                .issuer("goticketbackend")
-                .subject(client.getUserID().toString())
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiresIn))
-                .claim("scope",scope)
-                .build();
-
-        var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
         return ResponseEntity.created(URI.create("/clients/" + client.getUserID()))
-                .body(new LoginResponse(jwtValue, expiresIn));
+                .body(authTokenService.issueTokens(client));
     }
 
     @GetMapping

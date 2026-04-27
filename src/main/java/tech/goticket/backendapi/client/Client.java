@@ -2,6 +2,7 @@ package tech.goticket.backendapi.client;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
 import tech.goticket.backendapi.user.Role;
@@ -16,9 +17,8 @@ import java.time.LocalDate;
 @Check(constraints = "sex IN (1,2)")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Client extends User {
-
-    public Client() { super(); }
 
     public Client(
             String email,

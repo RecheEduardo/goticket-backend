@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
+import tech.goticket.backendapi.user.token.AuthTokenService;
 
 @RestController
 @RequestMapping(value = "/organizers")
@@ -52,7 +53,7 @@ public class OrganizerController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtEncoder jwtEncoder;
+    private AuthTokenService authTokenService;
 
     @PostMapping
     public ResponseEntity<LoginResponse> createNewOrganizer(@Valid @RequestBody CreateOrganizerDTO dto) {
@@ -82,22 +83,8 @@ public class OrganizerController {
 
         organizerService.saveOrganizer(organizer);
 
-        var expiresIn = 900L;
-
-        var scope = organizer.getRole().getName();
-
-        var claims = JwtClaimsSet.builder()
-                .issuer("goticketbackend")
-                .subject(organizer.getUserID().toString())
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiresIn))
-                .claim("scope", scope)
-                .build();
-
-        var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
         return ResponseEntity.created(URI.create("/organizers/" + organizer.getUserID()))
-                .body(new LoginResponse(jwtValue, expiresIn));
+                .body(authTokenService.issueTokens(organizer));
     }
 
     @GetMapping

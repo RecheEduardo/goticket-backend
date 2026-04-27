@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.user;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -15,11 +16,11 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tech.goticket.backendapi.shared.model.status.Status;
-import tech.goticket.backendapi.user.dto.LoginRequest;
-import tech.goticket.backendapi.user.dto.LoginResponse;
-import tech.goticket.backendapi.user.dto.UserDTO;
-import tech.goticket.backendapi.user.dto.UserListDTO;
+import tech.goticket.backendapi.user.dto.*;
 import tech.goticket.backendapi.shared.exception.user.InactiveUserException;
+import tech.goticket.backendapi.user.token.AuthTokenService;
+import tech.goticket.backendapi.user.token.RefreshToken;
+import tech.goticket.backendapi.user.token.RefreshTokenService;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -34,6 +35,9 @@ public class UserController {
     private UserService userService;
 
     @Autowired
+    private AuthTokenService authTokenService;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("/login")
@@ -41,32 +45,25 @@ public class UserController {
 
         var user = userService.findByEmail(loginRequest.email());
 
+        user.ifPresent(User::validateUserStatus);
+
         if(user.isEmpty() || !user.get().isLoginCorrect(loginRequest, bCryptPasswordEncoder)) {
             throw new BadCredentialsException("E-mail ou Senha inválidos!");
         }
 
-        if (user.get().getStatus().getName().equals(Status.Values.INACTIVE.name())) {
-            throw new InactiveUserException("Acesso negado, por favor entrar em contato com o suporte da plataforma.");
-        }
+        return ResponseEntity.ok(authTokenService.issueTokens(user.get()));
+    }
 
-        var now = Instant.now();
-        var expiresIn = 900L;
-        var name = user.get().displayName();
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authTokenService.refreshTokens(request.refreshToken()));
+    }
 
-        var scope = user.get().getRole().getName();
-
-        var claims = JwtClaimsSet.builder()
-                .issuer("goticketbackend")
-                .subject(user.get().getUserID().toString())
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiresIn))
-                .claim("scope", scope)
-                .claim("name", name)
-                .build();
-
-        var jwtvalue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
-        return ResponseEntity.ok(new LoginResponse(jwtvalue, expiresIn));
+    @PostMapping("/auth/logout")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> logout(Authentication authentication) {
+        authTokenService.revokeAll(UUID.fromString(authentication.getName()));
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/user")

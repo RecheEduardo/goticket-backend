@@ -45,6 +45,7 @@ public class SecurityConfig  {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/clients").permitAll()
                         .requestMatchers(HttpMethod.POST, "/organizers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/events").permitAll()
