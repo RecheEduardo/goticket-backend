@@ -127,16 +127,16 @@ VALUES ('Setor 01', 'Cadeiras numeradas próximas ao palco', 1200, NOW(), NOW(),
        ('Camarote A', 'Área exclusiva superior', 500, NOW(), NOW(), 10);
 
 -- Populando Event Categories
-INSERT INTO tb_event_categories (category_id, name) VALUES (1, 'Música') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (2, 'Tecnologia') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (3, 'Gastronomia') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (4, 'Artes e Cultura') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (5, 'Cursos e Workshops') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (6, 'Esportes e Bem-estar') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (7, 'Comédia e Stand-up') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (8, 'Feiras e Negócios') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (9, 'Festas e Shows') ON CONFLICT DO NOTHING;
-INSERT INTO tb_event_categories (category_id, name) VALUES (10, 'Games e E-Sports') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (1, 'Música', 'musica') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (2, 'Tecnologia', 'tecnologia') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (3, 'Gastronomia', 'gastronomia') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (4, 'Artes e Cultura', 'artes-e-cultura') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (5, 'Cursos e Workshops', 'cursos-e-workshops') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (6, 'Esportes e Bem-estar', 'esportes-e-bem-estar') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (7, 'Comédia e Stand-up', 'comedia-e-stand-up') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (8, 'Feiras e Negócios', 'feiras-e-negocios') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (9, 'Festas e Shows', 'festas-e-shows') ON CONFLICT DO NOTHING;
+INSERT INTO tb_event_categories (category_id, name, slug) VALUES (10, 'Games e E-Sports', 'games-e-esports') ON CONFLICT DO NOTHING;
 
 -- Populando Events com referência aos Venues e Categories
 -- Adicionado a coluna 'category_id'

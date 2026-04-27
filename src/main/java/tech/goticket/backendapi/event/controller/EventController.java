@@ -1,10 +1,9 @@
-package tech.goticket.backendapi.event;
+package tech.goticket.backendapi.event.controller;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -13,6 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tech.goticket.backendapi.event.Event;
+import tech.goticket.backendapi.event.EventStatus;
+import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.CreateEventDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;

@@ -49,6 +49,8 @@ public class SecurityConfig  {
                         .requestMatchers(HttpMethod.POST, "/organizers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/events").permitAll()
                         .requestMatchers(HttpMethod.GET,"/events/{eventId}").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/event-categories").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/event-categories/{categoryId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/venues/{venueId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/error").permitAll()
                         .anyRequest().authenticated())
