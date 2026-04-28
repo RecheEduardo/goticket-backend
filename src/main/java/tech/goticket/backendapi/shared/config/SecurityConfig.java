@@ -40,7 +40,8 @@ public class SecurityConfig  {
     private RSAPrivateKey privateKey;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   CustomAuthenticationEntryPoint authEntryPoint) throws Exception {
 
         http
                 .authorizeHttpRequests(authorize -> authorize
@@ -57,7 +58,9 @@ public class SecurityConfig  {
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable()) // apenas desativar em dev - TODO: review em prod
                 .cors(Customizer.withDefaults()) // Habilita a configuração de CORS em dev - TODO: review em prod
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
