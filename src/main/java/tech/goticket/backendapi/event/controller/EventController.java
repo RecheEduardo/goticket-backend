@@ -21,6 +21,7 @@ import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.CreateEventDTO;
 import tech.goticket.backendapi.event.dto.EventImageOrderItemDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
+import tech.goticket.backendapi.event.dto.EventPageDTO;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;
 import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
 import tech.goticket.backendapi.event.service.EventService;
@@ -105,9 +106,15 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<Event> findEventById(@PathVariable Long eventId) {
-        var event = eventService.findByEventID(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+    public ResponseEntity<EventPageDTO> findEventById(@PathVariable Long eventId,
+                                                      Authentication authentication) {
+
+        UUID userId = null;
+        if (authentication != null && authentication.isAuthenticated()) {
+            userId = UUID.fromString(authentication.getName());
+        }
+
+        EventPageDTO event = eventService.findByEventID(eventId, userId);
 
         return ResponseEntity.ok(event);
     }

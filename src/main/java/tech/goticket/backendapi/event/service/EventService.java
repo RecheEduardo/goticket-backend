@@ -13,11 +13,13 @@ import tech.goticket.backendapi.event.EventVisibility;
 import tech.goticket.backendapi.event.dto.EventImageOrderItemDTO;
 import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
+import tech.goticket.backendapi.event.dto.EventPageDTO;
 import tech.goticket.backendapi.event.repository.*;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.storage.FileStorageService;
 import tech.goticket.backendapi.shared.storage.FileUpload;
 import tech.goticket.backendapi.user.Role;
@@ -54,7 +56,24 @@ public class EventService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public Optional<Event> findByEventID(Long eventID) { return eventRepository.findByEventID(eventID); }
+    public EventPageDTO findByEventID(Long eventID, UUID userId) {
+        Event event = eventRepository.findByEventID(eventID)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+
+        boolean isEventVisibleAndApproved = event.getEventVisibility().getVisibilityID() == EventVisibility.Values.PUBLIC.getVisibilityId()
+                && event.getStatus().isApproved();
+        boolean isVenueActiveAndApproved = event.getVenue().getApprovalDate() != null
+                && event.getVenue().getStatus().getStatusID() == Status.Values.ACTIVE.getStatusID();
+        boolean isOrganizerActive = event.getOrganizer().getStatus().getStatusID() == Status.Values.ACTIVE.getStatusID();
+
+        if (!isEventVisibleAndApproved
+                || !isVenueActiveAndApproved
+                || !isOrganizerActive) {
+            validateUserPermission(event, userId, "Usuário não tem permissão para visualizar o evento solicitado.");
+        }
+
+        return new EventPageDTO(event);
+    }
 
     /*@Transactional
     public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
@@ -107,7 +126,7 @@ public class EventService {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
 
-        validateUserPermission(existingEvent, userId);
+        validateUserPermission(existingEvent, userId, "Usuário não tem permissão para executar esta ação.");
 
         try {
             objectMapper.readerForUpdating(existingEvent).readValue(patchNode);
@@ -123,7 +142,7 @@ public class EventService {
         Event event = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
 
-        validateUserPermission(event, userId);
+        validateUserPermission(event, userId, "Usuário não tem permissão para executar esta ação.");
 
         if (event.getEventVisibility().getName().equals(visibilityValue.name())) {
             throw new InvalidArgumentException("O evento já possui a visibilidade informada.");
@@ -149,7 +168,7 @@ public class EventService {
         Event event = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
 
-        validateUserPermission(event, userId);
+        validateUserPermission(event, userId, "Usuário não tem permissão para executar esta ação.");
 
         if (metadata == null || metadata.isEmpty()) {
             throw new InvalidArgumentException("A lista de imagens não pode ser vazia.");
@@ -223,7 +242,7 @@ public class EventService {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
 
-        validateUserPermission(existingEvent, userId);
+        validateUserPermission(existingEvent, userId, "Usuário não tem permissão para executar esta ação.");
 
         eventRepository.delete(existingEvent);
     }
@@ -233,7 +252,7 @@ public class EventService {
         Event existingEvent = eventRepository.findByEventID(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
 
-        validateUserPermission(existingEvent, userId);
+        validateUserPermission(existingEvent, userId, "Usuário não tem permissão para executar esta ação.");
 
         var eventImages = eventImageRepository.findByEvent_EventID(eventId);
 
@@ -245,8 +264,9 @@ public class EventService {
         eventImageRepository.delete(removedImage);
     }
 
-    // Auxiliar para lógica de permissão
-    private void validateUserPermission(Event event, UUID userId) {
+    private void validateUserPermission(Event event, UUID userId, String exceptionMessage) {
+        if(userId == null) { throw new ForbiddenActionException(exceptionMessage); }
+
         User requestUser = userService.findById(userId)
                 .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
 
@@ -254,7 +274,7 @@ public class EventService {
         boolean isEventOwner = requestUser.getUserID().equals(event.getOrganizer().getUserID());
 
         if(!isAdmin && !isEventOwner) {
-            throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");
+            throw new ForbiddenActionException(exceptionMessage);
         }
     }
 }
