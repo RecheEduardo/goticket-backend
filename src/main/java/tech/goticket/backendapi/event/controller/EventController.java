@@ -119,6 +119,16 @@ public class EventController {
         return ResponseEntity.ok(event);
     }
 
+    @GetMapping("/{eventId}/details")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Event> findEventDetailsById(@PathVariable Long eventId,
+                                                      Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        Event event = eventService.findByEventIDWithFullInfo(eventId, userId);
+
+        return ResponseEntity.ok(event);
+    }
+
     @GetMapping
     public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "categoryId", required = false) Long categoryId,
                                                                     @RequestParam(name = "page",defaultValue = "0") int page,

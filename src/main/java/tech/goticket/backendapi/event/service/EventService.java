@@ -75,6 +75,15 @@ public class EventService {
         return new EventPageDTO(event);
     }
 
+    public Event findByEventIDWithFullInfo(Long eventID, UUID userId) {
+        Event event = eventRepository.findByEventID(eventID)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+
+        validateUserPermission(event, userId, "Usuário não tem permissão para visualizar o evento com todos os detalhes.");
+
+        return event;
+    }
+
     /*@Transactional
     public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
         var approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
