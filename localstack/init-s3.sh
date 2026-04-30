@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BUCKET_NAME="goticket-dev"
+BUCKET_NAME="${BUCKET_NAME:-goticket-dev}"
 SEED_IMAGES_DIR="/seed-images"
 
 echo "Ensuring S3 bucket exists: ${BUCKET_NAME}"
@@ -21,7 +21,7 @@ if [ -d "${SEED_IMAGES_DIR}" ]; then
     [ -f "${file}" ] || continue
 
     filename="$(basename "${file}")"
-    extension=".${filename##*.}"
+    extension="${filename##*.}"
     event_number="$(echo "${filename}" | sed -E 's/^evento-([0-9]+).*/\1/')"
 
     if [[ ! "${event_number}" =~ ^[0-9]+$ ]]; then
@@ -29,7 +29,18 @@ if [ -d "${SEED_IMAGES_DIR}" ]; then
       continue
     fi
 
-    s3_key="events/${event_number}/cover${extension}"
+    extension="$(echo "${extension}" | tr '[:upper:]' '[:lower:]')"
+
+    case "${extension}" in
+      jpg|jpeg|png|webp|avif)
+        ;;
+      *)
+        echo "Skipping ${filename}: unsupported extension '${extension}'."
+        continue
+        ;;
+    esac
+
+    s3_key="events/${event_number}/cover.${extension}"
     echo "Uploading ${filename} -> s3://${BUCKET_NAME}/${s3_key}"
     awslocal s3 cp "${file}" "s3://${BUCKET_NAME}/${s3_key}"
   done

@@ -226,9 +226,26 @@ VALUES ('Palestra sobre Investimentos', 'O cenário econômico global está em c
 -- As imagens sao enviadas no init-s3.sh usando a key: events/{event_id}/cover.{ext}
 INSERT INTO tb_event_images (event_id, s3_key, ordination)
 VALUES
-    (1, 'events/1/cover.jpg', 0),
-    (2, 'events/2/cover.avif', 0),
-    (3, 'events/3/cover.webp', 0);
+    (1, 'events/1/cover.avif', 0),
+    (2, 'events/2/cover.jpg', 0),
+    (3, 'events/3/cover.jpg', 0),
+    (4, 'events/4/cover.png', 0),
+    (5, 'events/5/cover.jpg', 0),
+    (6, 'events/6/cover.png', 0),
+    (7, 'events/7/cover.webp', 0),
+    (8, 'events/8/cover.webp', 0),
+    (9, 'events/9/cover.jpg', 0),
+    (10, 'events/10/cover.webp', 0),
+    (11, 'events/11/cover.webp', 0),
+    (12, 'events/12/cover.jpg', 0),
+    (13, 'events/13/cover.jpg', 0),
+    (14, 'events/14/cover.webp', 0),
+    (15, 'events/15/cover.jpg', 0),
+    (16, 'events/16/cover.webp', 0),
+    (17, 'events/17/cover.jpg', 0),
+    (18, 'events/18/cover.jpg', 0),
+    (19, 'events/19/cover.webp', 0),
+    (20, 'events/20/cover.jpg', 0);
 -- Populando Event Sectors (Setores dos Eventos)
 -- Lógica: name, description, register_date, last_update_date, has_numbered_seats, event_id, venue_sector_id
 
