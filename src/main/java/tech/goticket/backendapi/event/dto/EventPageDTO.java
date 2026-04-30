@@ -1,14 +1,11 @@
 package tech.goticket.backendapi.event.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
-import lombok.Setter;
 import tech.goticket.backendapi.event.Event;
 import tech.goticket.backendapi.event.EventCategory;
 import tech.goticket.backendapi.event.EventImage;
 import tech.goticket.backendapi.event.EventSector;
 import tech.goticket.backendapi.organizer.Organizer;
-import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.venue.Venue;
 
 import java.time.Instant;
@@ -21,7 +18,7 @@ public class EventPageDTO {
 
     public EventPageDTO() {}
 
-    public EventPageDTO(Event event) {
+    public EventPageDTO(Event event, String venueSectorMapUrl) {
         this.title = event.getTitle();
         this.description = event.getDescription();
         this.ageRestriction = event.getAgeRestriction();
@@ -34,7 +31,7 @@ public class EventPageDTO {
 
         this.category = new CategoryDTO(event.getCategory());
         this.organizer = new OrganizerDTO(event.getOrganizer());
-        this.venue = new VenueDTO(event.getVenue());
+        this.venue = new VenueDTO(event.getVenue(), venueSectorMapUrl);
 
         this.sectors = event.getSectors();
         this.images = event.getImages();
@@ -82,18 +79,21 @@ public class EventPageDTO {
     }
 
     public record VenueDTO(
-            String name, String cnpj, String description,
+            Long venueID, String name, String cnpj, String description,
             String streetAddress, String streetAddressNumber,
             String neighborhood, String city, String state,
-            String country, String zipCode, Object status) {
+            String country, String zipCode, Object status,
+            String sectorMapS3Key, String sectorMapUrl) {
 
-        public VenueDTO(Venue v) {
+        public VenueDTO(Venue v, String sectorMapUrl) {
             this(
-                    v.getName(), v.getCNPJ(), v.getDescription(),
+                    v.getVenueID(), v.getName(), v.getCNPJ(), v.getDescription(),
                     v.getStreetAddress(), v.getStreetAddressNumber(),
                     v.getNeighborhood(), v.getCity(), v.getState(),
                     v.getCountry(), v.getZipCode(),
-                    v.getStatus()
+                    v.getStatus(),
+                    v.getSectorMapS3Key(),
+                    sectorMapUrl
             );
         }
     }

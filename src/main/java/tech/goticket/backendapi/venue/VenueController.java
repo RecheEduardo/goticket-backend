@@ -5,10 +5,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.organizer.OrganizerService;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
@@ -16,12 +18,17 @@ import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.shared.exception.user.DocumentAlreadyExistsException;
 import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.model.status.StatusRepository;
+import tech.goticket.backendapi.shared.storage.FileStorageService;
+import tech.goticket.backendapi.shared.storage.FileUpload;
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.venue.dto.CreateVenueDTO;
+import tech.goticket.backendapi.venue.dto.UpsertVenueSectorsPayloadDTO;
 import tech.goticket.backendapi.venue.dto.VenueListDTO;
+import tech.goticket.backendapi.venue.dto.VenueSectorDTO;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -36,6 +43,9 @@ public class VenueController {
 
     @Autowired
     private StatusRepository statusRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
@@ -54,6 +64,19 @@ public class VenueController {
                 .orElseThrow(() -> { return new ResourceNotFoundException("Espaço não encontrado."); });
 
         return ResponseEntity.ok(venue);
+    }
+
+    @GetMapping(value = "/{venueId}/sector-map", produces = "image/svg+xml")
+    public ResponseEntity<String> getVenueSectorMap(@PathVariable Long venueId) {
+        Venue venue = venueService.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Espaço não encontrado."));
+
+        if (venue.getSectorMapS3Key() == null || venue.getSectorMapS3Key().isBlank()) {
+            throw new ResourceNotFoundException("Mapa de setores não encontrado para este espaço.");
+        }
+
+        String svgText = fileStorageService.getObjectAsText(venue.getSectorMapS3Key());
+        return ResponseEntity.ok(svgText);
     }
 
     @PostMapping
@@ -118,6 +141,54 @@ public class VenueController {
         UUID userId = UUID.fromString(authentication.getName());
         Venue venue = venueService.updateVenue(venueId, patchNode, userId);
 
+        return ResponseEntity.ok(venue);
+    }
+
+    @GetMapping("/{venueId}/sectors")
+    public ResponseEntity<List<VenueSectorDTO>> listVenueSectors(@PathVariable Long venueId) {
+        venueService.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Espaço não encontrado."));
+
+        var sectors = venueService.listVenueSectors(venueId).stream()
+                .map(VenueSectorDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(sectors);
+    }
+
+    @PutMapping("/{venueId}/sectors")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<List<VenueSectorDTO>> replaceVenueSectors(@PathVariable Long venueId,
+                                                                    @Valid @RequestBody UpsertVenueSectorsPayloadDTO payload,
+                                                                    Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        var sectors = venueService.replaceVenueSectors(venueId, payload.sectors(), userId).stream()
+                .map(VenueSectorDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(sectors);
+    }
+
+    @PutMapping(value = "/{venueId}/sector-map", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
+    public ResponseEntity<Venue> uploadSectorMap(@PathVariable Long venueId,
+                                                 @RequestParam("mapFile") MultipartFile mapFile,
+                                                 Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+
+        if (mapFile == null || mapFile.isEmpty()) {
+            throw new InvalidArgumentException("O arquivo do mapa é obrigatório.");
+        }
+
+        String original = mapFile.getOriginalFilename() == null ? "" : mapFile.getOriginalFilename().toLowerCase();
+        if (!original.endsWith(".svg")) {
+            throw new InvalidArgumentException("O mapa deve ser um arquivo SVG.");
+        }
+
+        String key = "venues/" + venueId + "/maps/sector-map.svg";
+        String uploadedKey = fileStorageService.uploadWithKey(new FileUpload(mapFile), key);
+
+        Venue venue = venueService.updateVenueMapKey(venueId, uploadedKey, userId);
         return ResponseEntity.ok(venue);
     }
 

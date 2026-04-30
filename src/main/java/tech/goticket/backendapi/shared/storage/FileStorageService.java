@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Service
@@ -14,18 +15,21 @@ public class FileStorageService {
     @Autowired
     private S3Template template;
 
-    private String bucket = "goticket-dev";
+    @Value("${bucket.name}")
+    private String bucket;
 
-    // Para acessar o bucket via variável de ambiente, será utilizado ao acessar o s3 de prod
-    // @Value("${bucket.name}")
-    // private String bucket;
+    @Value("${spring.cloud.aws.endpoint}")
+    private String endpoint;
 
     public String upload(FileUpload fileUpload) {
+        String key = UUID.randomUUID().toString();
+        return uploadWithKey(fileUpload, key);
+    }
 
+    public String uploadWithKey(FileUpload fileUpload, String key) {
         try (var file = fileUpload.data().getInputStream()) {
-            String key = UUID.randomUUID().toString();
             S3Resource uploaded = template.upload(bucket, key, file);
-            return key;
+            return uploaded.getFilename();
         } catch (IOException ex) {
             throw new RuntimeException("Não foi possivel realizar o upload do arquivo.");
         }
@@ -33,5 +37,20 @@ public class FileStorageService {
 
     public void delete(String s3Key) {
         template.deleteObject(bucket, s3Key);
+    }
+
+    public String resolvePublicUrl(String s3Key) {
+        if (s3Key == null || s3Key.isBlank()) {
+            return null;
+        }
+        return endpoint.replaceAll("/$", "") + "/" + bucket + "/" + s3Key;
+    }
+
+    public String getObjectAsText(String s3Key) {
+        try (var input = template.download(bucket, s3Key).getInputStream()) {
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            throw new RuntimeException("Não foi possível ler o arquivo do storage.");
+        }
     }
 }

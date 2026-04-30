@@ -6,17 +6,23 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import tech.goticket.backendapi.event.repository.EventSectorRepository;
+import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.UserService;
+import tech.goticket.backendapi.venue.dto.UpsertVenueSectorDTO;
 import tech.goticket.backendapi.venue.dto.VenueListDTO;
 import tech.goticket.backendapi.venue.dto.VenueMinDTO;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,6 +35,12 @@ public class VenueService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private VenueSectorRepository venueSectorRepository;
+
+    @Autowired
+    private EventSectorRepository eventSectorRepository;
 
     public Optional<Venue> findByCNPJ(String cnpj) { return venueRepository.findByCNPJ(cnpj); }
 
@@ -76,6 +88,72 @@ public class VenueService {
         validateUserPermission(existingVenue, userId);
 
         venueRepository.delete(existingVenue);
+    }
+
+    @Transactional
+    public List<VenueSector> listVenueSectors(Long venueId) {
+        return venueSectorRepository.findAllByVenue_VenueIDOrderBySectorIDAsc(venueId);
+    }
+
+    @Transactional
+    public List<VenueSector> replaceVenueSectors(Long venueId, List<UpsertVenueSectorDTO> sectors, UUID userId) {
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Espaço não encontrado."));
+
+        validateUserPermission(venue, userId);
+
+        if (sectors == null) {
+            throw new InvalidArgumentException("A lista de setores é obrigatória.");
+        }
+
+        List<VenueSector> existingSectors = venueSectorRepository.findAllByVenue_VenueIDOrderBySectorIDAsc(venueId);
+        Set<Long> payloadSectorIds = new HashSet<>();
+
+        List<VenueSector> savedSectors = sectors.stream().map(input -> {
+            VenueSector venueSector;
+            if (input.sectorID() != null) {
+                venueSector = venueSectorRepository.findBySectorIDAndVenue_VenueID(input.sectorID(), venueId)
+                        .orElseThrow(() -> new InvalidArgumentException("Setor informado não pertence a este espaço."));
+                payloadSectorIds.add(input.sectorID());
+            } else {
+                venueSector = new VenueSector();
+                venueSector.setRegisterDate(Instant.now());
+                venueSector.setVenue(venue);
+            }
+
+            venueSector.setName(input.name().trim());
+            venueSector.setDescription(input.description().trim());
+            venueSector.setMaxCapacity(input.maxCapacity());
+            venueSector.setMapElementId(input.mapElementId());
+            venueSector.setLastUpdateDate(Instant.now());
+            return venueSector;
+        }).toList();
+
+        existingSectors.stream()
+                .filter(existing -> !payloadSectorIds.contains(existing.getSectorID()))
+                .forEach(existing -> {
+                    long references = eventSectorRepository.countByVenueSector_SectorID(existing.getSectorID());
+                    if (references > 0) {
+                        throw new InvalidArgumentException(
+                                "Não é possível remover o setor '" + existing.getName() + "' porque ele está vinculado a evento(s)."
+                        );
+                    }
+                    venueSectorRepository.delete(existing);
+                });
+
+        return venueSectorRepository.saveAll(savedSectors);
+    }
+
+    @Transactional
+    public Venue updateVenueMapKey(Long venueId, String sectorMapS3Key, UUID userId) {
+        Venue existingVenue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Espaço não encontrado."));
+
+        validateUserPermission(existingVenue, userId);
+
+        existingVenue.setSectorMapS3Key(sectorMapS3Key);
+        existingVenue.setLastUpdateDate(Instant.now());
+        return venueRepository.save(existingVenue);
     }
 
     // Auxiliar para lógica de permissão

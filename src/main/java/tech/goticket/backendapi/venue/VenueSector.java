@@ -13,6 +13,9 @@ public class VenueSector extends Sector {
     @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity;
 
+    @Column(name = "map_element_id")
+    private String mapElementId;
+
     @ManyToOne
     @JoinColumn(name = "venue_id", nullable = false)
     private Venue venue;

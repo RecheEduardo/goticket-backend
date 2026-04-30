@@ -1,6 +1,7 @@
 package tech.goticket.backendapi.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,5 +47,15 @@ public class EventSector extends Sector {
 
     public Integer getAvailableTickets() {
         return getTotalTickets() - getSoldTickets();
+    }
+
+    @JsonProperty("venueSectorId")
+    public Long getVenueSectorId() {
+        return venueSector != null ? venueSector.getSectorID() : null;
+    }
+
+    @JsonProperty("mapElementId")
+    public String getMapElementId() {
+        return venueSector != null ? venueSector.getMapElementId() : null;
     }
 }

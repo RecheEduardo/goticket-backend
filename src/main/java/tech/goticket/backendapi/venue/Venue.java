@@ -87,6 +87,9 @@ public class Venue {
     @Column(name = "zip_code", nullable = false)
     private String zipCode;
 
+    @Column(name = "sector_map_s3_key")
+    private String sectorMapS3Key;
+
     @Column(name = "approval_date", nullable = true)
     private Instant approvalDate;
 

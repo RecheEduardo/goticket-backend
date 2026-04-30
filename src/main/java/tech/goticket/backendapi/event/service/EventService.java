@@ -72,7 +72,8 @@ public class EventService {
             validateUserPermission(event, userId, "Usuário não tem permissão para visualizar o evento solicitado.");
         }
 
-        return new EventPageDTO(event);
+        String venueMapUrl = fileStorageService.resolvePublicUrl(event.getVenue().getSectorMapS3Key());
+        return new EventPageDTO(event, venueMapUrl);
     }
 
     public Event findByEventIDWithFullInfo(Long eventID, UUID userId) {
