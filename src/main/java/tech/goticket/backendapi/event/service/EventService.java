@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.Event;
@@ -15,6 +16,8 @@ import tech.goticket.backendapi.event.dto.EventMinDTO;
 import tech.goticket.backendapi.event.dto.EventMinListDTO;
 import tech.goticket.backendapi.event.dto.EventPageDTO;
 import tech.goticket.backendapi.event.repository.*;
+import tech.goticket.backendapi.event.view.EventMinDetailsView;
+import tech.goticket.backendapi.event.view.specifications.EventMinDetailsSpecifications;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
@@ -101,8 +104,21 @@ public class EventService {
     }*/
 
     @Transactional
-    public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
-        var events = eventMinDetailsRepository.findAll(pageRequest)
+    public EventMinListDTO findApprovedPublicEvents(String title,
+                                                    Long categoryId,
+                                                    Double startingPrice,
+                                                    String venueState,
+                                                    String venueCity,
+                                                    PageRequest pageRequest) {
+
+        Specification<EventMinDetailsView> spec = Specification.allOf(
+                EventMinDetailsSpecifications.hasTitle(title),
+                EventMinDetailsSpecifications.hasCategory(categoryId),
+                EventMinDetailsSpecifications.hasStartingPrice(startingPrice),
+                EventMinDetailsSpecifications.hasVenueState(venueState),
+                EventMinDetailsSpecifications.hasVenueCity(venueCity));
+
+        var events = eventMinDetailsRepository.findAll(spec, pageRequest)
                 .map(EventMinDTO::new);
 
         return new EventMinListDTO(pageRequest.getPageNumber(),

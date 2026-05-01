@@ -130,19 +130,21 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "categoryId", required = false) Long categoryId,
+    public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "title", required = false) String title,
+                                                                    @RequestParam(name = "categoryId", required = false) Long categoryId,
+                                                                    @RequestParam(name = "startingPrice", required = false) Double startingPrice,
+                                                                    @RequestParam(name = "venueState", required = false) String venueState,
+                                                                    @RequestParam(name = "venueCity", required = false) String venueCity,
                                                                     @RequestParam(name = "page",defaultValue = "0") int page,
                                                                     @RequestParam(name = "pageSize",defaultValue = "10") int pageSize){
 
-        EventMinListDTO events;
         PageRequest pageRequest = PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate");
-
-        if (categoryId != null) {
-            events = eventService.findApprovedPublicEventsByCategory(categoryId, pageRequest);
-        }
-        else {
-            events = eventService.findApprovedPublicEvents(pageRequest);
-        }
+        var events = eventService.findApprovedPublicEvents(title,
+                categoryId,
+                startingPrice,
+                venueState,
+                venueCity,
+                PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate"));
 
         return ResponseEntity.ok(events);
     }
