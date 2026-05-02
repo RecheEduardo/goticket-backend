@@ -33,7 +33,10 @@ public class EventPageDTO {
         this.organizer = new OrganizerDTO(event.getOrganizer());
         this.venue = new VenueDTO(event.getVenue(), venueSectorMapUrl);
 
-        this.sectors = event.getSectors();
+        this.sectors = event.getSectors()
+                .stream()
+                .map(EventSectorPublicDTO::new)
+                .toList();
         this.images = event.getImages();
     }
 
@@ -61,7 +64,7 @@ public class EventPageDTO {
 
     private VenueDTO venue;
 
-    private List<EventSector> sectors = new ArrayList<>();;
+    private List<EventSectorPublicDTO> sectors = new ArrayList<>();;
 
     private List<EventImage> images = new ArrayList<>();
 

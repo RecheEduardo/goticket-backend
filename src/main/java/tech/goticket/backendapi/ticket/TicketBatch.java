@@ -7,9 +7,16 @@ import lombok.Setter;
 import tech.goticket.backendapi.event.EventSector;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tb_ticket_batches")
+@Table(
+        name = "tb_ticket_batches",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_ticket_batch_sector_number",
+                columnNames = {"event_sector_id", "batch_number"}
+        )
+)
 @Getter
 @Setter
 public class TicketBatch {
@@ -24,6 +31,9 @@ public class TicketBatch {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    @Column(name = "activation_date")
+    private LocalDateTime activationDate;
 
     @Column(name = "total_tickets", nullable = false)
     private Integer totalTickets;
