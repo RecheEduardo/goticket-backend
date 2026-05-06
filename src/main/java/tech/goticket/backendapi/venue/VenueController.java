@@ -23,6 +23,7 @@ import tech.goticket.backendapi.shared.storage.FileUpload;
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.venue.dto.CreateVenueDTO;
 import tech.goticket.backendapi.venue.dto.UpsertVenueSectorsPayloadDTO;
+import tech.goticket.backendapi.venue.dto.VenueDetailDTO;
 import tech.goticket.backendapi.venue.dto.VenueListDTO;
 import tech.goticket.backendapi.venue.dto.VenueSectorDTO;
 
@@ -59,11 +60,11 @@ public class VenueController {
     }
 
     @GetMapping("/{venueId}")
-    public ResponseEntity<Venue> findVenueById(@PathVariable Long venueId) {
+    public ResponseEntity<VenueDetailDTO> findVenueById(@PathVariable Long venueId) {
         Venue venue = venueService.findById(venueId)
                 .orElseThrow(() -> { return new ResourceNotFoundException("Espaço não encontrado."); });
 
-        return ResponseEntity.ok(venue);
+        return ResponseEntity.ok(VenueDetailDTO.fromEntity(venue));
     }
 
     @GetMapping(value = "/{venueId}/sector-map", produces = "image/svg+xml")
@@ -135,13 +136,13 @@ public class VenueController {
 
     @PatchMapping(value = "/{venueId}", consumes = "application/merge-patch+json")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Venue> updateVenue(@PathVariable Long venueId,
-                                             @RequestBody JsonNode patchNode,
-                                             Authentication authentication) {
+    public ResponseEntity<VenueDetailDTO> updateVenue(@PathVariable Long venueId,
+                                                      @RequestBody JsonNode patchNode,
+                                                      Authentication authentication) {
         UUID userId = UUID.fromString(authentication.getName());
         Venue venue = venueService.updateVenue(venueId, patchNode, userId);
 
-        return ResponseEntity.ok(venue);
+        return ResponseEntity.ok(VenueDetailDTO.fromEntity(venue));
     }
 
     @GetMapping("/{venueId}/sectors")
@@ -171,9 +172,9 @@ public class VenueController {
 
     @PutMapping(value = "/{venueId}/sector-map", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Venue> uploadSectorMap(@PathVariable Long venueId,
-                                                 @RequestParam("mapFile") MultipartFile mapFile,
-                                                 Authentication authentication) {
+    public ResponseEntity<VenueDetailDTO> uploadSectorMap(@PathVariable Long venueId,
+                                                          @RequestParam("mapFile") MultipartFile mapFile,
+                                                          Authentication authentication) {
         UUID userId = UUID.fromString(authentication.getName());
 
         if (mapFile == null || mapFile.isEmpty()) {
@@ -189,7 +190,7 @@ public class VenueController {
         String uploadedKey = fileStorageService.uploadWithKey(new FileUpload(mapFile), key);
 
         Venue venue = venueService.updateVenueMapKey(venueId, uploadedKey, userId);
-        return ResponseEntity.ok(venue);
+        return ResponseEntity.ok(VenueDetailDTO.fromEntity(venue));
     }
 
     @DeleteMapping("/{venueId}")
