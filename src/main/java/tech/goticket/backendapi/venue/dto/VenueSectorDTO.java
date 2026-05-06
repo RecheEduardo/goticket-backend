@@ -11,7 +11,7 @@ public record VenueSectorDTO(
 ) {
     public VenueSectorDTO(VenueSector sector) {
         this(
-                sector.getSectorID(),
+                sector.getSectorId(),
                 sector.getName(),
                 sector.getDescription(),
                 sector.getMaxCapacity(),

@@ -7,7 +7,6 @@ import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.shared.model.status.Status;
 
 import java.time.Instant;
-import java.util.Locale;
 
 @Entity
 @Table(name = "tb_venues")
@@ -52,7 +51,7 @@ public class Venue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "venue_id", nullable = false)
-    private Long venueID;
+    private Long venueId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -90,7 +89,7 @@ public class Venue {
     @Column(name = "sector_map_s3_key")
     private String sectorMapS3Key;
 
-    @Column(name = "approval_date", nullable = true)
+    @Column(name = "approval_date")
     private Instant approvalDate;
 
     @Column(name = "register_date", nullable = false)
@@ -99,7 +98,7 @@ public class Venue {
     @Column(name = "last_update_date", nullable = false)
     private Instant lastUpdateDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     private Status status;
 

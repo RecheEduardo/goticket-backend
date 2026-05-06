@@ -29,7 +29,7 @@ public class TicketBatch {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "batch_id", nullable = false)
-    private Long batchID;
+    private Long batchId;
 
     @Column(name = "batch_number", nullable = false)
     private Integer batchNumber;
@@ -43,7 +43,10 @@ public class TicketBatch {
     @Column(name = "total_tickets", nullable = false)
     private Integer totalTickets;
 
-    @ManyToOne
+    @Version
+    private Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "event_date_sector_id", nullable = false)
     private EventDateSector eventDateSector;

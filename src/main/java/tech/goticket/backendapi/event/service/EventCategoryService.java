@@ -1,7 +1,7 @@
 package tech.goticket.backendapi.event.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.event.EventCategory;
 import tech.goticket.backendapi.event.dto.EventCategoryDTO;
@@ -11,9 +11,10 @@ import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class EventCategoryService {
-    @Autowired
-    private EventCategoryRepository eventCategoryRepository;
+
+    private final EventCategoryRepository eventCategoryRepository;
 
     @Transactional
     public EventCategoryDTO findCategoryById(Long categoryId) {

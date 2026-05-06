@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -16,93 +16,37 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.Event;
-import tech.goticket.backendapi.event.EventStatus;
-import tech.goticket.backendapi.event.EventVisibility;
-import tech.goticket.backendapi.event.dto.CreateEventDTO;
-import tech.goticket.backendapi.event.dto.EventImageOrderItemDTO;
-import tech.goticket.backendapi.event.dto.EventMinListDTO;
-import tech.goticket.backendapi.event.dto.EventPageDTO;
-import tech.goticket.backendapi.event.repository.EventStatusRepository;
-import tech.goticket.backendapi.event.repository.EventVisibilityRepository;
+import tech.goticket.backendapi.event.enums.EventVisibility;
+import tech.goticket.backendapi.event.dto.*;
 import tech.goticket.backendapi.event.service.EventService;
-import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
-import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
-import tech.goticket.backendapi.organizer.OrganizerService;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/events")
+@RequiredArgsConstructor
 public class EventController {
 
-    @Autowired
-    private OrganizerService organizerService;
+    private final EventService eventService;
 
-    @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private EventStatusRepository eventStatusRepository;
-
-    @Autowired
-    private EventVisibilityRepository eventVisibilityRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Void> createNewEvent(@Valid @RequestBody CreateEventDTO dto, Authentication authentication) {
+    public ResponseEntity<Void> createNewEvent(@Valid @RequestBody CreateEventDTO dto,
+                                               Authentication authentication) {
 
         UUID loggedUserId = UUID.fromString(authentication.getName());
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("SCOPE_ADMIN"));
 
-        UUID targetOrganizerId;
+        Event event = eventService.createEvent(dto, loggedUserId, isAdmin);
 
-        if(isAdmin) {
-            if(dto.organizerID() == null) {
-                throw new InvalidArgumentException("O ID do organizador é obrigatório quando a criação é feita por um Administrador.");
-            }
-            targetOrganizerId = dto.organizerID();
-        }
-        else {
-            targetOrganizerId = loggedUserId;
-        }
-
-        Organizer organizer = organizerService.findById(targetOrganizerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Organizador informado não encontrado."));
-
-        // Review status when approval endpoint for admins get implemented
-        EventStatus approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
-
-        EventVisibility privateVisibility = eventVisibilityRepository.findByName(EventVisibility.Values.PRIVATE.name())
-                .orElseThrow(() -> new ResourceNotFoundException("Visibilidade de evento não encontrada."));
-
-        Instant now = Instant.now();
-
-        Event event = new Event();
-        event.setTitle(dto.title());
-        event.setDescription(dto.description());
-        event.setAgeRestriction(dto.ageRestriction());
-        event.setEventVisibility(privateVisibility);
-        event.setStartDate(dto.startDate());
-        event.setEndDate(dto.endDate());
-        event.setRegisterDate(now);
-        event.setLastUpdateDate(now);
-        event.setStatus(approvedStatus);
-        event.setOrganizer(organizer);
-
-        if (dto.salesStartDate() != null) { event.setSalesStartDate(dto.salesStartDate()); }
-
-        eventService.saveEvent(event);
-
-        return ResponseEntity.created(URI.create("/events/" + event.getEventID())).build();
+        return ResponseEntity.created(URI.create("/events/" + event.getEventId())).build();
     }
 
     @GetMapping("/{eventId}")
@@ -121,10 +65,10 @@ public class EventController {
 
     @GetMapping("/{eventId}/details")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Event> findEventDetailsById(@PathVariable Long eventId,
+    public ResponseEntity<EventFullDTO> findEventDetailsById(@PathVariable Long eventId,
                                                       Authentication authentication) {
         UUID userId = UUID.fromString(authentication.getName());
-        Event event = eventService.findByEventIDWithFullInfo(eventId, userId);
+        EventFullDTO event = eventService.findByEventIDWithFullInfo(eventId, userId);
 
         return ResponseEntity.ok(event);
     }
@@ -138,7 +82,6 @@ public class EventController {
                                                                     @RequestParam(name = "page",defaultValue = "0") int page,
                                                                     @RequestParam(name = "pageSize",defaultValue = "10") int pageSize){
 
-        PageRequest pageRequest = PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate");
         var events = eventService.findApprovedPublicEvents(title,
                 categoryId,
                 startingPrice,
@@ -151,11 +94,11 @@ public class EventController {
 
     @PatchMapping(value = "/{eventId}", consumes = "application/merge-patch+json")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long eventId,
+    public ResponseEntity<EventFullDTO> updateEvent(@PathVariable Long eventId,
                                              @RequestBody JsonNode patchNode,
                                              Authentication authentication){
         UUID userId = UUID.fromString(authentication.getName());
-        Event event = eventService.updateEvent(eventId, patchNode, userId);
+        EventFullDTO event = eventService.updateEvent(eventId, patchNode, userId);
 
         return ResponseEntity.ok(event);
     }
@@ -194,7 +137,8 @@ public class EventController {
         try {
             metadata = objectMapper.readValue(
                     metadataJson,
-                    new TypeReference<List<EventImageOrderItemDTO>>() {}
+                    new TypeReference<>() {
+                    }
             );
         } catch (JsonProcessingException e) {
             throw new InvalidArgumentException("JSON de metadata inválido.");

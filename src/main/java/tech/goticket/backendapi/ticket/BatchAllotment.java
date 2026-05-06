@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+import tech.goticket.backendapi.ticket.enums.TicketType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -16,6 +18,7 @@ import java.time.Instant;
                 columnNames = {"batch_id", "ticket_type_id"}
         )
 )
+@BatchSize(size = 50)
 @Getter
 @Setter
 public class BatchAllotment {
@@ -23,7 +26,7 @@ public class BatchAllotment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "allotment_id", nullable = false)
-    private Long allotmentID;
+    private Long allotmentId;
 
     @Column(nullable = false)
     private Integer quota;

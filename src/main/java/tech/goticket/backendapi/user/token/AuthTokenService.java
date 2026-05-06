@@ -1,13 +1,12 @@
 package tech.goticket.backendapi.user.token;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import tech.goticket.backendapi.shared.exception.user.RefreshTokenReuseException;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.dto.LoginResponse;
 
@@ -15,13 +14,12 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class AuthTokenService {
 
-    @Autowired
-    private JwtEncoder jwtEncoder;
+    private final JwtEncoder jwtEncoder;
 
-    @Autowired
-    private RefreshTokenService refreshTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${jwt.access.ttl:900}")
     private long accessTtl;
@@ -63,7 +61,7 @@ public class AuthTokenService {
 
         var claims = JwtClaimsSet.builder()
                 .issuer("goticketbackend")
-                .subject(user.getUserID().toString())
+                .subject(user.getUserId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(accessTtl))
                 .claim("scope", user.getRole().getName())

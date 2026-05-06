@@ -20,7 +20,7 @@ public record ClientMinDTO(
 ) {
     public ClientMinDTO(Client client) {
         this(
-                client.getUserID(),
+                client.getUserId(),
                 client.getEmail(),
                 client.getFullName(),
                 client.getIdentityDocument(),

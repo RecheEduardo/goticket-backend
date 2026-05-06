@@ -34,7 +34,7 @@ public abstract class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id", nullable = false)
-    private UUID userID;
+    private UUID userId;
 
     @Column(unique = true, nullable = false)
     private String email;

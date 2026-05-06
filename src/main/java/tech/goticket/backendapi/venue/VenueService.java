@@ -3,7 +3,7 @@ package tech.goticket.backendapi.venue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.event.repository.EventSectorRepository;
@@ -26,24 +26,23 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class VenueService {
-    @Autowired
-    private VenueRepository venueRepository;
 
-    @Autowired
-    private UserService userService;
+    private final VenueRepository venueRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final UserService userService;
 
-    @Autowired
-    private VenueSectorRepository venueSectorRepository;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private EventSectorRepository eventSectorRepository;
+    private final VenueSectorRepository venueSectorRepository;
 
+    private final EventSectorRepository eventSectorRepository;
+
+    @Transactional
     public Optional<Venue> findByCNPJ(String cnpj) { return venueRepository.findByCNPJ(cnpj); }
 
+    @Transactional
     public Optional<Venue> findById(Long venueId) { return venueRepository.findById(venueId); }
 
     @Transactional
@@ -92,7 +91,7 @@ public class VenueService {
 
     @Transactional
     public List<VenueSector> listVenueSectors(Long venueId) {
-        return venueSectorRepository.findAllByVenue_VenueIDOrderBySectorIDAsc(venueId);
+        return venueSectorRepository.findAllByVenue_VenueIdOrderBySectorIdAsc(venueId);
     }
 
     @Transactional
@@ -106,13 +105,13 @@ public class VenueService {
             throw new InvalidArgumentException("A lista de setores é obrigatória.");
         }
 
-        List<VenueSector> existingSectors = venueSectorRepository.findAllByVenue_VenueIDOrderBySectorIDAsc(venueId);
+        List<VenueSector> existingSectors = venueSectorRepository.findAllByVenue_VenueIdOrderBySectorIdAsc(venueId);
         Set<Long> payloadSectorIds = new HashSet<>();
 
         List<VenueSector> savedSectors = sectors.stream().map(input -> {
             VenueSector venueSector;
             if (input.sectorID() != null) {
-                venueSector = venueSectorRepository.findBySectorIDAndVenue_VenueID(input.sectorID(), venueId)
+                venueSector = venueSectorRepository.findBySectorIdAndVenue_VenueId(input.sectorID(), venueId)
                         .orElseThrow(() -> new InvalidArgumentException("Setor informado não pertence a este espaço."));
                 payloadSectorIds.add(input.sectorID());
             } else {
@@ -130,9 +129,9 @@ public class VenueService {
         }).toList();
 
         existingSectors.stream()
-                .filter(existing -> !payloadSectorIds.contains(existing.getSectorID()))
+                .filter(existing -> !payloadSectorIds.contains(existing.getSectorId()))
                 .forEach(existing -> {
-                    long references = eventSectorRepository.countByVenueSector_SectorID(existing.getSectorID());
+                    long references = eventSectorRepository.countByVenueSector_SectorId(existing.getSectorId());
                     if (references > 0) {
                         throw new InvalidArgumentException(
                                 "Não é possível remover o setor '" + existing.getName() + "' porque ele está vinculado a evento(s)."
@@ -156,14 +155,13 @@ public class VenueService {
         return venueRepository.save(existingVenue);
     }
 
-    // Auxiliar para lógica de permissão
     private void validateUserPermission(Venue venue, UUID userId) {
         User requestUser = userService.findById(userId)
                 .orElseThrow(() -> new ForbiddenActionException("Um erro ocorreu na sessão atual, faça login novamente."));
 
         boolean isAdmin = requestUser.getRole().getName().equals(Role.Values.ADMIN.name());
         boolean isVenueOwner = venue.getOrganizer() != null
-                && requestUser.getUserID().equals(venue.getOrganizer().getUserID());
+                && requestUser.getUserId().equals(venue.getOrganizer().getUserId());
 
         if (!isAdmin && !isVenueOwner) {
             throw new ForbiddenActionException("Usuário não tem permissão para executar esta ação.");

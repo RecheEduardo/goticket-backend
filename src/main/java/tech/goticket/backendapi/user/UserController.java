@@ -1,7 +1,7 @@
 package tech.goticket.backendapi.user;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -10,35 +10,22 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.user.dto.*;
-import tech.goticket.backendapi.shared.exception.user.InactiveUserException;
 import tech.goticket.backendapi.user.token.AuthTokenService;
-import tech.goticket.backendapi.user.token.RefreshToken;
-import tech.goticket.backendapi.user.token.RefreshTokenService;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private JwtEncoder jwtEncoder;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    private final AuthTokenService authTokenService;
 
-    @Autowired
-    private AuthTokenService authTokenService;
-
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
@@ -76,7 +63,7 @@ public class UserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return ResponseEntity.ok(new UserDTO(
-                user.getUserID(),
+                user.getUserId(),
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus()

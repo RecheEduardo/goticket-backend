@@ -18,7 +18,7 @@ public record OrganizerMinDTO(
 ) {
     public OrganizerMinDTO(Organizer organizer) {
         this(
-                organizer.getUserID(),
+                organizer.getUserId(),
                 organizer.getEmail(),
                 organizer.getOrganizerName(),
                 organizer.getLegalName(),

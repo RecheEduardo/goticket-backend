@@ -6,6 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface VenueSectorRepository extends JpaRepository<VenueSector, Long> {
-    List<VenueSector> findAllByVenue_VenueIDOrderBySectorIDAsc(Long venueId);
-    Optional<VenueSector> findBySectorIDAndVenue_VenueID(Long sectorId, Long venueId);
+    List<VenueSector> findAllByVenue_VenueIdOrderBySectorIdAsc(Long venueId);
+    Optional<VenueSector> findBySectorIdAndVenue_VenueId(Long sectorId, Long venueId);
 }

@@ -3,7 +3,7 @@ package tech.goticket.backendapi.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,28 +14,25 @@ import tech.goticket.backendapi.user.UserService;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
 
-import java.util.InputMismatchException;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     public Optional<Client> findByIdentityDocument(String identityDocument) {
         return this.clientRepository.findByIdentityDocument(identityDocument);
     }
 
     public Optional<Client> findById(UUID clientId) {
-        return this.clientRepository.findByUserID(clientId);
+        return this.clientRepository.findByUserId(clientId);
     }
 
     @Transactional
@@ -57,7 +54,7 @@ public class ClientService {
 
     @Transactional
     public Client updateClient(UUID uuid, JsonNode patchNode) {
-        Client existingClient = clientRepository.findByUserID(uuid)
+        Client existingClient = clientRepository.findByUserId(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado"));
 
         try {
@@ -69,8 +66,8 @@ public class ClientService {
             Client updatedClient = objectMapper.treeToValue(patchedNode, Client.class);
             updatedClient.setPassword(existingClient.getPassword());
 
-            if(!updatedClient.getUserID().equals(existingClient.getUserID())) {
-                updatedClient.setUserID(existingClient.getUserID());
+            if(!updatedClient.getUserId().equals(existingClient.getUserId())) {
+                updatedClient.setUserId(existingClient.getUserId());
             }
 
             if(!updatedClient.getEmail().equals(existingClient.getEmail())) {

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import tech.goticket.backendapi.event.enums.EventStatus;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,11 +35,11 @@ public class EventDate {
     @Column(name = "last_update_date", nullable = false)
     private Instant lastUpdateDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     private EventStatus status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;

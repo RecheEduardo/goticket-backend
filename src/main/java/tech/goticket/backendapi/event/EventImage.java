@@ -12,7 +12,7 @@ import lombok.Setter;
 public class EventImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long eventImageID;
+    private Long eventImageId;
 
     @Column(name = "s3_key", nullable = false)
     private String s3Key;
@@ -20,7 +20,7 @@ public class EventImage {
     @Column(name = "ordination", nullable = false)
     private Integer ordination;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     @JsonIgnore
     private Event event;

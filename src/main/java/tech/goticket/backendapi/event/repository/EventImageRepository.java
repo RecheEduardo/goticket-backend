@@ -6,5 +6,5 @@ import tech.goticket.backendapi.event.EventImage;
 import java.util.List;
 
 public interface EventImageRepository extends JpaRepository<EventImage, Long> {
-    List<EventImage> findByEvent_EventID(Long eventId);
+    List<EventImage> findByEvent_EventId(Long eventId);
 }

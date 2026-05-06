@@ -31,18 +31,18 @@ public record VenueDetailDTO(
 
     public static VenueDetailDTO fromEntity(Venue venue) {
         StatusRef statusRef = venue.getStatus() == null ? null
-                : new StatusRef(venue.getStatus().getStatusID(), venue.getStatus().getName());
+                : new StatusRef(venue.getStatus().getStatusId(), venue.getStatus().getName());
 
         OrganizerRef organizerRef = venue.getOrganizer() == null ? null
                 : new OrganizerRef(
-                        venue.getOrganizer().getUserID(),
+                        venue.getOrganizer().getUserId(),
                         venue.getOrganizer().getOrganizerName(),
                         venue.getOrganizer().getLegalName(),
                         venue.getOrganizer().getCNPJ()
                 );
 
         return new VenueDetailDTO(
-                venue.getVenueID(),
+                venue.getVenueId(),
                 venue.getName(),
                 venue.getLegalName(),
                 venue.getCNPJ(),

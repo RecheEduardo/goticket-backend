@@ -5,7 +5,7 @@ import tech.goticket.backendapi.event.*;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.TicketBatch;
-import tech.goticket.backendapi.ticket.TicketType;
+import tech.goticket.backendapi.ticket.enums.TicketType;
 import tech.goticket.backendapi.venue.Venue;
 
 import java.math.BigDecimal;
@@ -27,8 +27,8 @@ public class EventPageDTO {
         this.startDate = event.getStartDate();
         this.endDate = event.getEndDate();
         this.approvalDate = event.getApprovalDate();
-        this.statusId = event.getStatus().getStatusID();
-        this.eventVisibilityId = event.getEventVisibility().getVisibilityID();
+        this.statusId = event.getStatus().getStatusId();
+        this.eventVisibilityId = event.getEventVisibility().getVisibilityId();
 
         this.category = new CategoryDTO(event.getCategory());
         this.organizer = new OrganizerDTO(event.getOrganizer());
@@ -65,7 +65,7 @@ public class EventPageDTO {
 
     private VenueDTO venue;
 
-    private List<EventDateDTO> dates = new ArrayList<>();;
+    private List<EventDateDTO> dates = new ArrayList<>();
 
     private List<EventImage> images = new ArrayList<>();
 
@@ -89,7 +89,7 @@ public class EventPageDTO {
 
         public EventDateSectorDTO(EventDateSector eds) {
             this(
-                    eds.getEventDateSectorID(),
+                    eds.getEventDateSectorId(),
                     eds.getEventSector().getName(),
                     eds.getEventSector().getDescription(),
                     eds.getEventSector().isHasNumberedSeats(),
@@ -116,28 +116,10 @@ public class EventPageDTO {
 
         public AllotmentDTO(BatchAllotment a) {
             this(
-                    a.getAllotmentID(),
+                    a.getAllotmentId(),
                     a.getBatch().getBatchNumber(),
                     a.effectivePrice(),
                     a.getAvailableTickets()
-            );
-        }
-    }
-
-    public record TicketBatchDTO(
-            Long batchID,
-            Integer batchNumber,
-            BigDecimal price,
-            Integer totalTickets,
-            Integer availableTickets) {
-
-        public TicketBatchDTO(TicketBatch b) {
-            this(
-                    b.getBatchID(),
-                    b.getBatchNumber(),
-                    b.getPrice(),
-                    b.getTotalTickets(),
-                    b.getAvailableTickets()
             );
         }
     }
@@ -149,7 +131,7 @@ public class EventPageDTO {
     }
 
     public record VenueDTO(
-            Long venueID, String name, String cnpj, String description,
+            Long venueId, String name, String cnpj, String description,
             String streetAddress, String streetAddressNumber,
             String neighborhood, String city, String state,
             String country, String zipCode, Object status,
@@ -157,7 +139,7 @@ public class EventPageDTO {
 
         public VenueDTO(Venue v, String sectorMapUrl) {
             this(
-                    v.getVenueID(), v.getName(), v.getCNPJ(), v.getDescription(),
+                    v.getVenueId(), v.getName(), v.getCNPJ(), v.getDescription(),
                     v.getStreetAddress(), v.getStreetAddressNumber(),
                     v.getNeighborhood(), v.getCity(), v.getState(),
                     v.getCountry(), v.getZipCode(),

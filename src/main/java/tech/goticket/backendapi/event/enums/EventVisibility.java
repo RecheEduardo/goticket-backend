@@ -1,4 +1,4 @@
-package tech.goticket.backendapi.event;
+package tech.goticket.backendapi.event.enums;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,7 +12,7 @@ public class EventVisibility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "visibility_id")
-    private Long visibilityID;
+    private Long visibilityId;
 
     private String name;
 

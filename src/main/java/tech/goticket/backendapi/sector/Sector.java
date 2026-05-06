@@ -13,7 +13,7 @@ public abstract class Sector {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sector_id", nullable = false)
-    private Long sectorID;
+    private Long sectorId;
 
     @Column(nullable = false)
     private String name;

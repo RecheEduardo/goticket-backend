@@ -11,7 +11,7 @@ public class MaterializedViewRefreshJob {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedDelay = 60000)
     @Transactional
     public void refreshEventSummaryView() {
         entityManager.createNativeQuery(

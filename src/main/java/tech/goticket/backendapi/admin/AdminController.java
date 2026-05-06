@@ -1,38 +1,22 @@
 package tech.goticket.backendapi.admin;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
-import tech.goticket.backendapi.user.repository.RoleRepository;
-import tech.goticket.backendapi.shared.model.status.StatusRepository;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/admins")
+@RequiredArgsConstructor
 public class AdminController {
 
-    @Autowired
-    private AdminService adminService;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private StatusRepository statusRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtEncoder jwtEncoder;
+    private final AdminService adminService;
 
     @GetMapping("/{adminId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")

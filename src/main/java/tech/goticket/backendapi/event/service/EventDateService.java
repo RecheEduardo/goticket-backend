@@ -1,11 +1,11 @@
 package tech.goticket.backendapi.event.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.event.Event;
 import tech.goticket.backendapi.event.EventDate;
-import tech.goticket.backendapi.event.EventStatus;
+import tech.goticket.backendapi.event.enums.EventStatus;
 import tech.goticket.backendapi.event.repository.EventRepository;
 import tech.goticket.backendapi.event.repository.EventStatusRepository;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
@@ -16,21 +16,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class EventDateService {
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventRepository eventRepository;
 
-    @Autowired
-    private EventStatusRepository eventStatusRepository;
+    private final EventStatusRepository eventStatusRepository;
 
-    @Autowired
-    private EventService eventService;
+    private final EventAuthorizationService eventAuthorizationService;
 
-    @Transactional
-    public EventDate createEventDate(Long eventId, LocalDateTime start, LocalDateTime end, UUID userId) {
-        Event event = loadAndAuthorize(eventId, userId);
-
+    public EventDate attachEventDate(Event event, LocalDateTime start, LocalDateTime end) {
         validateRange(start, end);
 
         EventStatus approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
@@ -45,10 +40,18 @@ public class EventDateService {
         newDate.setLastUpdateDate(now);
 
         event.getEventDates().add(newDate);
+        return newDate;
+    }
+
+    @Transactional
+    public EventDate createEventDate(Long eventId, LocalDateTime start, LocalDateTime end, UUID userId) {
+        Event event = loadAndAuthorize(eventId, userId);
+
+        EventDate created = attachEventDate(event, start, end);
         event.recalculateDateRange();
 
         eventRepository.save(event);
-        return newDate;
+        return created;
     }
 
     @Transactional
@@ -95,9 +98,9 @@ public class EventDateService {
     }
 
     private Event loadAndAuthorize(Long eventId, UUID userId) {
-        Event event = eventRepository.findByEventID(eventId)
+        Event event = eventRepository.findByEventId(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
-        eventService.validateUserPermission(event, userId,
+        eventAuthorizationService.requireOwnerOrAdmin(event, userId,
                 "Usuário não tem permissão para alterar as datas deste evento.");
         return event;
     }

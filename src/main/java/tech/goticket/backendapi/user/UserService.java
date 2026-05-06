@@ -1,7 +1,7 @@
 package tech.goticket.backendapi.user;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.shared.model.status.Status;
@@ -14,17 +14,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private StatusRepository statusRepository;
+    private final StatusRepository statusRepository;
 
     @Transactional
     public UserListDTO findAll(PageRequest request) {
-        var users = userRepository.findAll(request).map(user -> new UserDTO(user.getUserID(),
+        var users = userRepository.findAll(request).map(user -> new UserDTO(user.getUserId(),
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus()));
@@ -40,7 +39,7 @@ public class UserService {
     public UserListDTO findActiveUsers(PageRequest request) {
         var activeStatus = statusRepository.findByName(Status.Values.ACTIVE.name());
         var users = userRepository.findByStatus(activeStatus, request)
-                .map(user -> new UserDTO(user.getUserID(),
+                .map(user -> new UserDTO(user.getUserId(),
                         user.getEmail(),
                         user.getRole(),
                         user.getStatus()));

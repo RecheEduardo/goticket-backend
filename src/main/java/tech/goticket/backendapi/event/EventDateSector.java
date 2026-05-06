@@ -7,7 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.TicketBatch;
-import tech.goticket.backendapi.ticket.TicketType;
+import tech.goticket.backendapi.ticket.enums.TicketType;
 
 import java.time.Instant;
 import java.util.*;
@@ -26,7 +26,7 @@ public class EventDateSector {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "event_date_sector_id", nullable = false)
-    private Long eventDateSectorID;
+    private Long eventDateSectorId;
 
     @Column(name = "register_date", nullable = false)
     private Instant registerDate;
@@ -34,7 +34,7 @@ public class EventDateSector {
     @Column(name = "last_update_date", nullable = false)
     private Instant lastUpdateDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "event_date_id", nullable = false)
     private EventDate eventDate;

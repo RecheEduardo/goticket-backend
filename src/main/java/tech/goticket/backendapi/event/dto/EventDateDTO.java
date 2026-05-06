@@ -18,7 +18,7 @@ public record EventDateDTO(
                 ed.getEventDateId(),
                 ed.getStartDate(),
                 ed.getEndDate(),
-                ed.getStatus() != null ? ed.getStatus().getStatusID() : null,
+                ed.getStatus() != null ? ed.getStatus().getStatusId() : null,
                 ed.getDateSectors().stream()
                         .sorted(Comparator.comparing(eds -> eds.getEventSector().getName()))
                         .map(EventPageDTO.EventDateSectorDTO::new)

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.client.Client;
+import tech.goticket.backendapi.ticket.enums.EligibilityType;
+import tech.goticket.backendapi.ticket.enums.TicketStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,7 +20,7 @@ public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ticket_id", columnDefinition = "uuid")
-    private UUID ticketID;
+    private UUID ticketId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_allotment_id", nullable = false)

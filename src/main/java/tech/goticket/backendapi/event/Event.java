@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import tech.goticket.backendapi.event.enums.EventStatus;
+import tech.goticket.backendapi.event.enums.EventVisibility;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.venue.Venue;
 
@@ -23,7 +25,7 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "event_id", nullable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long eventID;
+    private Long eventId;
 
     @Column(nullable = false)
     private String title;
@@ -45,7 +47,7 @@ public class Event {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime endDate;
 
-    @Column(name = "approval_date", nullable = true)
+    @Column(name = "approval_date")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant approvalDate;
 
@@ -57,15 +59,15 @@ public class Event {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant lastUpdateDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private EventCategory category;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     private EventStatus status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "visibility_id", nullable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private EventVisibility eventVisibility;

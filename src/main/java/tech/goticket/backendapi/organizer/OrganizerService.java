@@ -3,7 +3,7 @@ package tech.goticket.backendapi.organizer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,21 +14,18 @@ import tech.goticket.backendapi.user.UserService;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.user.EmailAlreadyExistsException;
 
-import java.util.InputMismatchException;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class OrganizerService {
 
-    @Autowired
-    private OrganizerRepository organizerRepository;
+    private final OrganizerRepository organizerRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @Transactional
     public void saveOrganizer(Organizer organizer) { organizerRepository.save(organizer); }
@@ -37,7 +34,7 @@ public class OrganizerService {
         return this.organizerRepository.findByCNPJ(CNPJ);
     }
 
-    public Optional<Organizer> findById(UUID organizerId) { return this.organizerRepository.findByUserID(organizerId); }
+    public Optional<Organizer> findById(UUID organizerId) { return this.organizerRepository.findByUserId(organizerId); }
 
     @Transactional
     public OrganizerListDTO findAll(PageRequest pageRequest) {
@@ -55,7 +52,7 @@ public class OrganizerService {
 
     @Transactional
     public Organizer updateOrganizer(UUID organizerId, JsonNode patchNode) {
-        Organizer existingOrganizer = organizerRepository.findByUserID(organizerId)
+        Organizer existingOrganizer = organizerRepository.findByUserId(organizerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizador não encontrado"));
 
         try {
@@ -67,8 +64,8 @@ public class OrganizerService {
             Organizer updatedOrganizer = objectMapper.treeToValue(patchedNode, Organizer.class);
             updatedOrganizer.setPassword(existingOrganizer.getPassword());
 
-            if(!updatedOrganizer.getUserID().equals(existingOrganizer.getUserID())) {
-                updatedOrganizer.setUserID(existingOrganizer.getUserID());
+            if(!updatedOrganizer.getUserId().equals(existingOrganizer.getUserId())) {
+                updatedOrganizer.setUserId(existingOrganizer.getUserId());
             }
 
             if(!updatedOrganizer.getEmail().equals(existingOrganizer.getEmail())) {

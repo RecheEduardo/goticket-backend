@@ -10,6 +10,6 @@ import java.util.UUID;
 public interface OrganizerRepository extends JpaRepository<Organizer, Long> {
     Optional<Organizer> findByCNPJ(String CNPJ);
 
-    Optional<Organizer> findByUserID(UUID userID);
+    Optional<Organizer> findByUserId(UUID userId);
 }
 

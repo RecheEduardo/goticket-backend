@@ -2,7 +2,7 @@ package tech.goticket.backendapi.venue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -34,19 +34,16 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/venues")
+@RequiredArgsConstructor
 public class VenueController {
 
-    @Autowired
-    private OrganizerService organizerService;
+    private final OrganizerService organizerService;
 
-    @Autowired
-    private VenueService venueService;
+    private final VenueService venueService;
 
-    @Autowired
-    private StatusRepository statusRepository;
+    private final StatusRepository statusRepository;
 
-    @Autowired
-    private FileStorageService fileStorageService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
@@ -62,7 +59,7 @@ public class VenueController {
     @GetMapping("/{venueId}")
     public ResponseEntity<VenueDetailDTO> findVenueById(@PathVariable Long venueId) {
         Venue venue = venueService.findById(venueId)
-                .orElseThrow(() -> { return new ResourceNotFoundException("Espaço não encontrado."); });
+                .orElseThrow(() -> new ResourceNotFoundException("Espaço não encontrado."));
 
         return ResponseEntity.ok(VenueDetailDTO.fromEntity(venue));
     }
@@ -131,7 +128,7 @@ public class VenueController {
 
         venueService.saveVenue(newVenue);
 
-        return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueID())).build();
+        return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueId())).build();
     }
 
     @PatchMapping(value = "/{venueId}", consumes = "application/merge-patch+json")

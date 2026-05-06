@@ -12,7 +12,7 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
-    private Long roleID;
+    private Long roleId;
 
     private String name;
 
@@ -21,14 +21,14 @@ public class Role {
         ORGANIZER(2L),
         CLIENT(3L);
 
-        long roleID;
+        long roleId;
 
-        Values(long roleID){
-            this.roleID = roleID;
+        Values(long roleId){
+            this.roleId = roleId;
         }
 
-        public long getRoleID() {
-            return roleID;
+        public long getRoleId() {
+            return roleId;
         }
     }
 }

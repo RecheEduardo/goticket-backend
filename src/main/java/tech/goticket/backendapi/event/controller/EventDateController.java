@@ -1,7 +1,7 @@
 package tech.goticket.backendapi.event.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -17,10 +17,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/events/{eventId}/dates")
+@RequiredArgsConstructor
 public class EventDateController {
 
-    @Autowired
-    private EventDateService eventDateService;
+    private final EventDateService eventDateService;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")

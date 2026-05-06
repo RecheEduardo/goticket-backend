@@ -1,7 +1,7 @@
 package tech.goticket.backendapi.user.token;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.shared.exception.user.InvalidRefreshTokenException;
@@ -11,13 +11,12 @@ import tech.goticket.backendapi.user.User;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class RefreshTokenService {
 
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    @Autowired
-    private RefreshTokenFamilyRevoker refreshTokenFamilyRevoker;
+    private final RefreshTokenFamilyRevoker refreshTokenFamilyRevoker;
 
     @Value("${jwt.refresh.ttl:604800}")
     private long refreshTtl;

@@ -1,6 +1,6 @@
 package tech.goticket.backendapi.event.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/event-categories")
+@RequiredArgsConstructor
 public class EventCategoryController {
 
-    @Autowired
-    private EventCategoryService eventCategoryService;
+    private final EventCategoryService eventCategoryService;
 
     @GetMapping
     public ResponseEntity<List<EventCategoryDTO>> getAllEventCategories() {

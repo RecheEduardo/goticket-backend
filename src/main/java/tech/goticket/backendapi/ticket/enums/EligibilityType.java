@@ -1,4 +1,4 @@
-package tech.goticket.backendapi.ticket;
+package tech.goticket.backendapi.ticket.enums;
 
 import jakarta.persistence.*;
 import lombok.Getter;

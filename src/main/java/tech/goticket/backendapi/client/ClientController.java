@@ -2,15 +2,12 @@ package tech.goticket.backendapi.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.client.dto.ClientListDTO;
 import tech.goticket.backendapi.client.dto.CreateClientDTO;
@@ -34,25 +31,20 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/clients")
+@RequiredArgsConstructor
 public class ClientController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
 
-    @Autowired
-    private StatusRepository statusRepository;
+    private final StatusRepository statusRepository;
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private AuthTokenService authTokenService;
+    private final AuthTokenService authTokenService;
 
     @PostMapping
     public ResponseEntity<LoginResponse> createNewClient(@Valid @RequestBody CreateClientDTO dto) {
@@ -85,7 +77,7 @@ public class ClientController {
 
         clientService.saveClient(client);
 
-        return ResponseEntity.created(URI.create("/clients/" + client.getUserID()))
+        return ResponseEntity.created(URI.create("/clients/" + client.getUserId()))
                 .body(authTokenService.issueTokens(client));
     }
 

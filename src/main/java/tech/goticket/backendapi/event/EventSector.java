@@ -6,14 +6,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tech.goticket.backendapi.sector.Sector;
-import tech.goticket.backendapi.ticket.TicketBatch;
 import tech.goticket.backendapi.venue.VenueSector;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
 @Table(name = "tb_event_sectors")
@@ -39,7 +35,7 @@ public class EventSector extends Sector {
 
     @JsonProperty("venueSectorId")
     public Long getVenueSectorId() {
-        return venueSector != null ? venueSector.getSectorID() : null;
+        return venueSector != null ? venueSector.getSectorId() : null;
     }
 
     @JsonProperty("mapElementId")

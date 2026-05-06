@@ -18,7 +18,7 @@ public record VenueMinDTO(
 ) {
     public VenueMinDTO(Venue venue) {
         this(
-                venue.getVenueID(),
+                venue.getVenueId(),
                 venue.getName(),
                 venue.getLegalName(),
                 venue.getCNPJ(),

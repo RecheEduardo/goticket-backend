@@ -5,7 +5,7 @@ import tech.goticket.backendapi.event.EventDateSector;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.TicketBatch;
-import tech.goticket.backendapi.ticket.TicketType;
+import tech.goticket.backendapi.ticket.enums.TicketType;
 
 import java.math.BigDecimal;
 

@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface ClientRepository extends JpaRepository<Client, Long> {
     Optional<Client> findByIdentityDocument(String identityDocument);
 
-    Optional<Client> findByUserID(UUID userID);
+    Optional<Client> findByUserId(UUID userId);
 }

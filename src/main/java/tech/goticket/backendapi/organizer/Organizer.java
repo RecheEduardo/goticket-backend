@@ -2,6 +2,7 @@ package tech.goticket.backendapi.organizer;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tech.goticket.backendapi.user.User;
 
@@ -11,6 +12,7 @@ import java.time.Instant;
 @Table(name = "tb_organizers")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Organizer extends User {
     @Column(name = "organizer_name", nullable = false)
     private String organizerName;
