@@ -15,7 +15,7 @@ public class MaterializedViewRefreshJob {
     @Transactional
     public void refreshEventSummaryView() {
         entityManager.createNativeQuery(
-                "REFRESH MATERIALIZED VIEW vw_event_min_details"
+                "REFRESH MATERIALIZED VIEW CONCURRENTLY vw_event_min_details"
         ).executeUpdate();
     }
 }

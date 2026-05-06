@@ -16,7 +16,7 @@ public class VenueSector extends Sector {
     @Column(name = "map_element_id")
     private String mapElementId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private Venue venue;
 }

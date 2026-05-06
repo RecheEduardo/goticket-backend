@@ -1,17 +1,18 @@
 package tech.goticket.backendapi.event.dto;
 
 import lombok.Getter;
-import tech.goticket.backendapi.event.Event;
-import tech.goticket.backendapi.event.EventCategory;
-import tech.goticket.backendapi.event.EventImage;
-import tech.goticket.backendapi.event.EventSector;
+import tech.goticket.backendapi.event.*;
 import tech.goticket.backendapi.organizer.Organizer;
+import tech.goticket.backendapi.ticket.BatchAllotment;
+import tech.goticket.backendapi.ticket.TicketBatch;
+import tech.goticket.backendapi.ticket.TicketType;
 import tech.goticket.backendapi.venue.Venue;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 public class EventPageDTO {
@@ -33,9 +34,9 @@ public class EventPageDTO {
         this.organizer = new OrganizerDTO(event.getOrganizer());
         this.venue = new VenueDTO(event.getVenue(), venueSectorMapUrl);
 
-        this.sectors = event.getSectors()
+        this.dates = event.getEventDates()
                 .stream()
-                .map(EventSectorPublicDTO::new)
+                .map(EventDateDTO::new)
                 .toList();
         this.images = event.getImages();
     }
@@ -64,7 +65,7 @@ public class EventPageDTO {
 
     private VenueDTO venue;
 
-    private List<EventSectorPublicDTO> sectors = new ArrayList<>();;
+    private List<EventDateDTO> dates = new ArrayList<>();;
 
     private List<EventImage> images = new ArrayList<>();
 
@@ -72,6 +73,72 @@ public class EventPageDTO {
     public record CategoryDTO(String name, String slug) {
         public CategoryDTO(EventCategory c) {
             this(c.getName(), c.getSlug());
+        }
+    }
+
+    public record EventDateSectorDTO(
+            Long eventDateSectorID,
+            String name,
+            String description,
+            boolean hasNumberedSeats,
+            Long venueSectorId,
+            String mapElementId,
+            Integer totalTickets,
+            Integer availableTickets,
+            Map<TicketType.Values, AllotmentDTO> currentAllotments) {
+
+        public EventDateSectorDTO(EventDateSector eds) {
+            this(
+                    eds.getEventDateSectorID(),
+                    eds.getEventSector().getName(),
+                    eds.getEventSector().getDescription(),
+                    eds.getEventSector().isHasNumberedSeats(),
+                    eds.getEventSector().getVenueSectorId(),
+                    eds.getEventSector().getMapElementId(),
+                    eds.getTotalTickets(),
+                    eds.getAvailableTickets(),
+                    eds.getCurrentAllotmentsByType().entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    e -> new AllotmentDTO(e.getValue()),
+                                    (a, b) -> a,
+                                    () -> new EnumMap<>(TicketType.Values.class)
+                            ))
+            );
+        }
+    }
+
+    public record AllotmentDTO(
+            Long allotmentID,
+            Integer batchNumber,
+            BigDecimal price,
+            Integer availableTickets) {
+
+        public AllotmentDTO(BatchAllotment a) {
+            this(
+                    a.getAllotmentID(),
+                    a.getBatch().getBatchNumber(),
+                    a.effectivePrice(),
+                    a.getAvailableTickets()
+            );
+        }
+    }
+
+    public record TicketBatchDTO(
+            Long batchID,
+            Integer batchNumber,
+            BigDecimal price,
+            Integer totalTickets,
+            Integer availableTickets) {
+
+        public TicketBatchDTO(TicketBatch b) {
+            this(
+                    b.getBatchID(),
+                    b.getBatchNumber(),
+                    b.getPrice(),
+                    b.getTotalTickets(),
+                    b.getAvailableTickets()
+            );
         }
     }
 

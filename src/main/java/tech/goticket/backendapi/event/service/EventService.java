@@ -29,6 +29,8 @@ import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.UserService;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,21 +90,6 @@ public class EventService {
         return event;
     }
 
-    /*@Transactional
-    public EventMinListDTO findApprovedPublicEvents(PageRequest pageRequest) {
-        var approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
-        var publicStatus = eventVisibilityRepository.findByName(EventVisibility.Values.PUBLIC.name())
-                .orElseThrow(() -> new ResourceNotFoundException("Visibilidade pública não encontrada."));
-        var events = eventRepository.findAllEventsByStatusAndEventVisibility(approvedStatus, publicStatus, pageRequest)
-                .map(EventMinDTO::new);
-
-        return new EventMinListDTO(pageRequest.getPageNumber(),
-                pageRequest.getPageSize(),
-                events.getTotalPages(),
-                events.getTotalElements(),
-                events.toList());
-    }*/
-
     @Transactional
     public EventMinListDTO findApprovedPublicEvents(String title,
                                                     Long categoryId,
@@ -143,10 +130,26 @@ public class EventService {
     @Transactional
     public void saveEvent(Event event) { eventRepository.save(event); }
 
+    private static final Set<String> PATCHABLE_FIELDS = Set.of(
+            "title",
+            "description",
+            "ageRestriction",
+            "salesStartDate",
+            "category"
+    );
+
     @Transactional
     public Event updateEvent(Long eventId, JsonNode patchNode, UUID userId) {
-        if (patchNode.has("eventVisibility")) {
-            throw new InvalidArgumentException("A visibilidade do evento não pode ser editada por este endpoint.");
+        Set<String> attempted = new HashSet<>();
+        patchNode.fieldNames().forEachRemaining(attempted::add);
+
+        Set<String> notAllowed = new HashSet<>(attempted);
+        notAllowed.removeAll(PATCHABLE_FIELDS);
+
+        if (!notAllowed.isEmpty()) {
+            throw new InvalidArgumentException(
+                    "Os seguintes campos não podem ser editados por este endpoint: " + notAllowed
+            );
         }
 
         Event existingEvent = eventRepository.findByEventID(eventId)
@@ -156,7 +159,7 @@ public class EventService {
 
         try {
             objectMapper.readerForUpdating(existingEvent).readValue(patchNode);
-
+            existingEvent.setLastUpdateDate(Instant.now());
             return eventRepository.save(existingEvent);
         } catch (Exception e) {
             throw new PatchProgressingException("Erro ao atualizar evento.");
@@ -290,7 +293,7 @@ public class EventService {
         eventImageRepository.delete(removedImage);
     }
 
-    private void validateUserPermission(Event event, UUID userId, String exceptionMessage) {
+    public void validateUserPermission(Event event, UUID userId, String exceptionMessage) {
         if(userId == null) { throw new ForbiddenActionException(exceptionMessage); }
 
         User requestUser = userService.findById(userId)

@@ -2,7 +2,6 @@ package tech.goticket.backendapi.event.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import tech.goticket.backendapi.event.projection.EventMinProjection;
 import tech.goticket.backendapi.event.view.EventMinDetailsView;
 
 import java.math.BigDecimal;
@@ -23,15 +22,6 @@ public class EventMinDTO {
     private String[] imageKeys;
 
     public EventMinDTO() {}
-
-    public EventMinDTO(EventMinProjection eventMinProjection) {
-        this.eventID = eventMinProjection.getEventID();
-        this.title = eventMinProjection.getTitle();
-        this.startDate = eventMinProjection.getStartDate();
-        this.venueName = eventMinProjection.getVenue().getName();
-        this.venueCity = eventMinProjection.getVenue().getCity();
-        this.venueState = eventMinProjection.getVenue().getState();
-    }
 
     public EventMinDTO(EventMinDetailsView eventMinDetailsView) {
         this.eventID = eventMinDetailsView.getEventId();

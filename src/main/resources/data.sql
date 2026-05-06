@@ -15,6 +15,31 @@ INSERT INTO tb_event_status (status_id, name) VALUES (4, 'DECLINED') ON CONFLICT
 INSERT INTO tb_event_status (status_id, name) VALUES (5, 'CANCELED') ON CONFLICT DO NOTHING;
 INSERT INTO tb_event_status (status_id, name) VALUES (6, 'POSTPONED') ON CONFLICT DO NOTHING;
 
+-- =================================================================
+-- Tipos de ingresso
+-- =================================================================
+INSERT INTO tb_ticket_types (ticket_type_id, name) VALUES (1, 'FULL')     ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_types (ticket_type_id, name) VALUES (2, 'HALF')     ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_types (ticket_type_id, name) VALUES (3, 'SOLIDARY') ON CONFLICT DO NOTHING;
+
+-- =================================================================
+-- Tipos de elegibilidade (sub-tipos de meia)
+-- =================================================================
+INSERT INTO tb_eligibility_types (eligibility_type_id, name) VALUES (1, 'STUDENT')          ON CONFLICT DO NOTHING;
+INSERT INTO tb_eligibility_types (eligibility_type_id, name) VALUES (2, 'ELDERLY')          ON CONFLICT DO NOTHING;
+INSERT INTO tb_eligibility_types (eligibility_type_id, name) VALUES (3, 'DISABILITY')       ON CONFLICT DO NOTHING;
+INSERT INTO tb_eligibility_types (eligibility_type_id, name) VALUES (4, 'LOW_INCOME_YOUTH') ON CONFLICT DO NOTHING;
+INSERT INTO tb_eligibility_types (eligibility_type_id, name) VALUES (5, 'TEACHER')          ON CONFLICT DO NOTHING;
+
+-- =================================================================
+-- Status do ingresso
+-- =================================================================
+INSERT INTO tb_ticket_status (ticket_status_id, name) VALUES (1, 'ACTIVE')      ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_status (ticket_status_id, name) VALUES (2, 'USED')        ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_status (ticket_status_id, name) VALUES (3, 'CANCELED')    ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_status (ticket_status_id, name) VALUES (4, 'REFUNDED')    ON CONFLICT DO NOTHING;
+INSERT INTO tb_ticket_status (ticket_status_id, name) VALUES (5, 'TRANSFERRED') ON CONFLICT DO NOTHING;
+
 -- Populando Users (Organizer)
 INSERT INTO tb_users (user_id, email, password, role_id, status_id)
 VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'organizer@events.com', '$2a$10$3zHzb.NpvO.He.WeQ3.p2.o.j.m1G.m2vQ.EaG.g/s5.f.b1G.m2', 2, 1)
@@ -359,160 +384,537 @@ INSERT INTO tb_event_sectors (name, description, register_date, last_update_date
 VALUES ('Plenária Investidores', 'Cadeiras frontais com mesa de apoio.', NOW(), NOW(), TRUE, 20, 18),
        ('Galeria de Estudantes', 'Visão ampla do evento.', NOW(), NOW(), TRUE, 20, 19);
 
+-- =================================================================
+-- Populando Event Dates (Sessões/Datas dos Eventos)
+-- Lógica: start_date, end_date, register_date, last_update_date, status_id, event_id
+-- =================================================================
+
+-- Evento 1: Rock Fest 2025 (1 sessão) -> ED 1
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-01 18:00:00', '2025-12-02 02:00:00', NOW(), NOW(), 2, 1);
+
+-- Evento 2: Spring Boot Conf (1 sessão) -> ED 2
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-20 09:00:00', '2025-11-20 18:00:00', NOW(), NOW(), 2, 2);
+
+-- Evento 3: Festival Gastronômico (1 sessão) -> ED 3
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-25 12:00:00', '2025-11-25 22:00:00', NOW(), NOW(), 2, 3);
+
+-- Evento 4: Maratona Tech (1 sessão de 48h) -> ED 4
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-05 19:00:00', '2025-12-07 19:00:00', NOW(), NOW(), 2, 4);
+
+-- Evento 5: Concerto de Jazz (1 sessão) -> ED 5
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-28 20:00:00', '2025-11-28 23:00:00', NOW(), NOW(), 2, 5);
+
+-- Evento 6: Expo Arte Digital (6 dias de exposição) -> ED 6, 7, 8, 9, 10, 11
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-10 10:00:00', '2025-12-10 20:00:00', NOW(), NOW(), 2, 6),
+('2025-12-11 10:00:00', '2025-12-11 20:00:00', NOW(), NOW(), 2, 6),
+('2025-12-12 10:00:00', '2025-12-12 20:00:00', NOW(), NOW(), 2, 6),
+('2025-12-13 10:00:00', '2025-12-13 20:00:00', NOW(), NOW(), 2, 6),
+('2025-12-14 10:00:00', '2025-12-14 20:00:00', NOW(), NOW(), 2, 6),
+('2025-12-15 10:00:00', '2025-12-15 20:00:00', NOW(), NOW(), 2, 6);
+
+-- Evento 7: Samba de Raiz (1 sessão) -> ED 12
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-22 16:00:00', '2025-11-22 21:00:00', NOW(), NOW(), 2, 7);
+
+-- Evento 8: Feira de Livros (4 dias) -> ED 13, 14, 15, 16
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2026-01-15 09:00:00', '2026-01-15 18:00:00', NOW(), NOW(), 2, 8),
+('2026-01-16 09:00:00', '2026-01-16 18:00:00', NOW(), NOW(), 2, 8),
+('2026-01-17 09:00:00', '2026-01-17 18:00:00', NOW(), NOW(), 2, 8),
+('2026-01-18 09:00:00', '2026-01-18 18:00:00', NOW(), NOW(), 2, 8);
+
+-- Evento 9: Show de Comédia Stand-up (1 sessão) -> ED 17
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-29 21:00:00', '2025-11-29 23:00:00', NOW(), NOW(), 2, 9);
+
+-- Evento 10: Palestra IA (1 sessão) -> ED 18
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-03 19:00:00', '2025-12-03 22:00:00', NOW(), NOW(), 2, 10);
+
+-- Evento 11: Aula de Yoga no Parque (1 sessão) -> ED 19
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-23 08:00:00', '2025-11-23 09:30:00', NOW(), NOW(), 2, 11);
+
+-- Evento 12: Circuito de Corrida (1 sessão) -> ED 20
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-14 07:00:00', '2025-12-14 10:00:00', NOW(), NOW(), 2, 12);
+
+-- Evento 13: Festival de Cinema Indie (6 dias) -> ED 21, 22, 23, 24, 25, 26
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2026-01-20 14:00:00', '2026-01-20 23:00:00', NOW(), NOW(), 2, 13),
+('2026-01-21 14:00:00', '2026-01-21 23:00:00', NOW(), NOW(), 2, 13),
+('2026-01-22 14:00:00', '2026-01-22 23:00:00', NOW(), NOW(), 2, 13),
+('2026-01-23 14:00:00', '2026-01-23 23:00:00', NOW(), NOW(), 2, 13),
+('2026-01-24 14:00:00', '2026-01-24 23:00:00', NOW(), NOW(), 2, 13),
+('2026-01-25 14:00:00', '2026-01-25 23:00:00', NOW(), NOW(), 2, 13);
+
+-- Evento 14: Torneio de E-Sports (2 dias) -> ED 27, 28
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-20 10:00:00', '2025-12-20 22:00:00', NOW(), NOW(), 2, 14),
+('2025-12-21 10:00:00', '2025-12-21 22:00:00', NOW(), NOW(), 2, 14);
+
+-- Evento 15: Bazar de Natal (2 dias) -> ED 29, 30
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-12 11:00:00', '2025-12-12 19:00:00', NOW(), NOW(), 2, 15),
+('2025-12-13 11:00:00', '2025-12-13 19:00:00', NOW(), NOW(), 2, 15);
+
+-- Evento 16: Workshop de Fotografia (1 sessão) -> ED 31
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2026-02-05 14:00:00', '2026-02-05 18:00:00', NOW(), NOW(), 2, 16);
+
+-- Evento 17: Festa Eletrônica (1 sessão atravessando madrugada) -> ED 32
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-12-27 22:00:00', '2025-12-28 06:00:00', NOW(), NOW(), 2, 17);
+
+-- Evento 18: Peça de Teatro: O Fantasma (1 sessão) -> ED 33
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2026-03-10 20:00:00', '2026-03-10 23:00:00', NOW(), NOW(), 2, 18);
+
+-- Evento 19: Show Acústico (1 sessão) -> ED 34
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2025-11-30 19:00:00', '2025-11-30 21:00:00', NOW(), NOW(), 2, 19);
+
+-- Evento 20: Palestra sobre Investimentos (1 sessão) -> ED 35
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
+('2026-01-10 19:30:00', '2026-01-10 21:30:00', NOW(), NOW(), 2, 20);
+
+-- =================================================================
+-- Populando Event Date Sectors (Instâncias de inventário por dia × setor)
+-- Lógica: register_date, last_update_date, event_date_id, event_sector_id
+-- IDs auto-gerados estão comentados para referência das batches abaixo
+-- =================================================================
+
+-- Evento 1 (3 setores × 1 data) -> EDS 1, 2, 3
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 1, 1),  -- EDS 1
+(NOW(), NOW(), 1, 2),  -- EDS 2
+(NOW(), NOW(), 1, 3);  -- EDS 3
+
+-- Evento 2 (2 setores × 1 data) -> EDS 4, 5
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 2, 4),
+(NOW(), NOW(), 2, 5);
+
+-- Evento 3 (1 setor × 1 data) -> EDS 6
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 3, 6);
+
+-- Evento 4 (1 setor × 1 data) -> EDS 7
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 4, 7);
+
+-- Evento 5 (2 setores × 1 data) -> EDS 8, 9
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 5, 8),
+(NOW(), NOW(), 5, 9);
+
+-- Evento 6 (1 setor × 6 dias) -> EDS 10, 11, 12, 13, 14, 15
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 6, 10),
+(NOW(), NOW(), 7, 10),
+(NOW(), NOW(), 8, 10),
+(NOW(), NOW(), 9, 10),
+(NOW(), NOW(), 10, 10),
+(NOW(), NOW(), 11, 10);
+
+-- Evento 7 (2 setores × 1 data) -> EDS 16, 17
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 12, 11),
+(NOW(), NOW(), 12, 12);
+
+-- Evento 8 (1 setor × 4 dias) -> EDS 18, 19, 20, 21
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 13, 13),
+(NOW(), NOW(), 14, 13),
+(NOW(), NOW(), 15, 13),
+(NOW(), NOW(), 16, 13);
+
+-- Evento 9 (2 setores × 1 data) -> EDS 22, 23
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 17, 14),
+(NOW(), NOW(), 17, 15);
+
+-- Evento 10 (1 setor × 1 data) -> EDS 24
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 18, 16);
+
+-- Evento 11 (1 setor × 1 data) -> EDS 25
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 19, 17);
+
+-- Evento 12 (1 setor × 1 data) -> EDS 26
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 20, 18);
+
+-- Evento 13 (1 setor × 6 dias) -> EDS 27, 28, 29, 30, 31, 32
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 21, 19),
+(NOW(), NOW(), 22, 19),
+(NOW(), NOW(), 23, 19),
+(NOW(), NOW(), 24, 19),
+(NOW(), NOW(), 25, 19),
+(NOW(), NOW(), 26, 19);
+
+-- Evento 14 (2 setores × 2 dias) -> EDS 33, 34, 35, 36
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 27, 20),  -- Dia 1, Cadeira Prata
+(NOW(), NOW(), 27, 21),  -- Dia 1, Cadeira Bronze
+(NOW(), NOW(), 28, 20),  -- Dia 2, Cadeira Prata
+(NOW(), NOW(), 28, 21);  -- Dia 2, Cadeira Bronze
+
+-- Evento 15 (1 setor × 2 dias) -> EDS 37, 38
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 29, 22),
+(NOW(), NOW(), 30, 22);
+
+-- Evento 16 (1 setor × 1 data) -> EDS 39
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 31, 23);
+
+-- Evento 17 (2 setores × 1 data) -> EDS 40, 41
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 32, 24),
+(NOW(), NOW(), 32, 25);
+
+-- Evento 18 (2 setores × 1 data) -> EDS 42, 43
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 33, 26),
+(NOW(), NOW(), 33, 27);
+
+-- Evento 19 (1 setor × 1 data) -> EDS 44
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 34, 28);
+
+-- Evento 20 (2 setores × 1 data) -> EDS 45, 46
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id) VALUES
+(NOW(), NOW(), 35, 29),
+(NOW(), NOW(), 35, 30);
+
+-- =================================================================
 -- Populando Ticket Batches (Lotes de Ingressos)
--- Lógica: batch_number, price, total_tickets, sold_tickets, event_sector_id
+-- Lógica: batch_number, price, total_tickets, event_date_sector_id
+-- =================================================================
 
--- Evento 1: Rock Fest 2025 (Festival com alta demanda -> 3 lotes)
--- ES 1 (Pista Premium Rock, Máx: 2000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 300.00, 500, 0, 1),
-(2, 350.00, 1000, 0, 1),
-(3, 400.00, 500, 0, 1);
--- ES 2 (Pista Geral Rock, Máx: 5000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 150.00, 1500, 0, 2),
-(2, 180.00, 2000, 0, 2),
-(3, 200.00, 1500, 0, 2);
--- ES 3 (Mezanino VIP Rock, Máx: 1000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 250.00, 400, 0, 3),
-(2, 300.00, 600, 0, 3);
+-- Evento 1: Rock Fest 2025 (3 setores, 1 dia)
+-- EDS 1 (Pista Premium Rock)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 300.00, 500, 1),
+(2, 350.00, 1000, 1),
+(3, 400.00, 500, 1);
+-- EDS 2 (Pista Geral Rock)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 150.00, 1500, 2),
+(2, 180.00, 2000, 2),
+(3, 200.00, 1500, 2);
+-- EDS 3 (Mezanino VIP Rock)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 250.00, 400, 3),
+(2, 300.00, 600, 3);
 
--- Evento 2: Spring Boot Conf (Conferência -> Lote Early Bird e Lote Geral)
--- ES 4 (Plenária Principal, Máx: 2500)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 100.00, 500, 0, 4),
-(2, 150.00, 2000, 0, 4);
--- ES 5 (Área Networking, Máx: 700)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 250.00, 200, 0, 5),
-(2, 300.00, 500, 0, 5);
+-- Evento 2: Spring Boot Conf
+-- EDS 4 (Plenária)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 100.00, 500, 4),
+(2, 150.00, 2000, 4);
+-- EDS 5 (Networking)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 250.00, 200, 5),
+(2, 300.00, 500, 5);
 
--- Evento 3: Festival Gastronômico (Feira -> Lote Único, menos ingressos que a capacidade total)
--- ES 6 (Área de Degustação, Máx: 5000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 50.00, 4000, 0, 6);
+-- Evento 3: Festival Gastronômico
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 50.00, 4000, 6);
 
--- Evento 4: Maratona Tech (Hackathon -> Lote Único de Inscrição)
--- ES 7 (Arena Hackathon, Máx: 15000 - Carga liberada: 1000 para conforto)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 30.00, 1000, 0, 7);
+-- Evento 4: Maratona Tech
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 30.00, 1000, 7);
 
--- Evento 5: Concerto de Jazz (Teatro Clássico -> Lote Único)
--- ES 8 (Plateia Jazz, Máx: 800) e ES 9 (Camarote Blue Note, Máx: 200)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 120.00, 800, 0, 8),
-(1, 200.00, 200, 0, 9);
+-- Evento 5: Concerto de Jazz
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 120.00, 800, 8),
+(1, 200.00, 200, 9);
 
--- Evento 6: Expo Arte Digital (Exposição contínua -> Lote Único)
--- ES 10 (Galeria Imersiva, Máx: 3000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 40.00, 3000, 0, 10);
+-- Evento 6: Expo Arte Digital (1 setor, 6 dias -> 1 lote por dia)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 40.00, 3000, 10),
+(1, 40.00, 3000, 11),
+(1, 40.00, 3000, 12),
+(1, 40.00, 3000, 13),
+(1, 40.00, 3000, 14),
+(1, 40.00, 3000, 15);
 
--- Evento 7: Samba de Raiz (Show Popular -> 2 Lotes Pista, 1 Lote Camarote)
--- ES 11 (Roda de Samba, Máx: 3000) e ES 12 (Camarote do Samba, Máx: 500)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 30.00, 1000, 0, 11),
-(2, 50.00, 2000, 0, 11),
-(1, 100.00, 500, 0, 12);
+-- Evento 7: Samba de Raiz
+-- EDS 16 (Roda)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 30.00, 1000, 16),
+(2, 50.00, 2000, 16);
+-- EDS 17 (Camarote)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 100.00, 500, 17);
 
--- Evento 8: Feira de Livros (Evento aberto com ingresso barato -> Lote Único)
--- ES 13 (Palco de Autores, Máx: 1400)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 10.00, 1400, 0, 13);
+-- Evento 8: Feira de Livros (1 setor, 4 dias)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 10.00, 1400, 18),
+(1, 10.00, 1400, 19),
+(1, 10.00, 1400, 20),
+(1, 10.00, 1400, 21);
 
--- Evento 9: Show de Comédia Stand-up (Lote Único)
--- ES 14 (Setor Risada VIP, Máx: 1200) e ES 15 (Frisas Comedy, Máx: 300)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 80.00, 1200, 0, 14),
-(1, 120.00, 300, 0, 15);
+-- Evento 9: Show de Comédia Stand-up
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 80.00, 1200, 22),
+(1, 120.00, 300, 23);
 
--- Evento 10: Palestra IA (2 Lotes)
--- ES 16 (Auditório IA, Máx: 2500 - Carga disponibilizada de 2000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 60.00, 1000, 0, 16),
-(2, 90.00, 1000, 0, 16);
+-- Evento 10: Palestra IA
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 60.00, 1000, 24),
+(2, 90.00, 1000, 24);
 
--- Evento 11: Aula de Yoga no Parque (Lote Único limitado a 500 pessoas no gramado)
--- ES 17 (Tapetes de Yoga, Máx: 25000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 20.00, 500, 0, 17);
+-- Evento 11: Aula de Yoga no Parque
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 20.00, 500, 25);
 
--- Evento 12: Circuito de Corrida (Vários lotes de inscrição)
--- ES 18 (Arena do Corredor, Máx: 10000 - Carga: 6000 corredores)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 80.00, 2000, 0, 18),
-(2, 100.00, 3000, 0, 18),
-(3, 120.00, 1000, 0, 18);
+-- Evento 12: Circuito de Corrida
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 80.00, 2000, 26),
+(2, 100.00, 3000, 26),
+(3, 120.00, 1000, 26);
 
--- Evento 13: Festival de Cinema Indie (Lote Único)
--- ES 19 (Plateia Cinema, Máx: 1200 - Limitado a 800 para exibição focada)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 25.00, 800, 0, 19);
+-- Evento 13: Festival de Cinema Indie (1 setor, 6 dias)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 25.00, 800, 27),
+(1, 25.00, 800, 28),
+(1, 25.00, 800, 29),
+(1, 25.00, 800, 30),
+(1, 25.00, 800, 31),
+(1, 25.00, 800, 32);
 
--- Evento 14: Torneio de E-Sports (Alta demanda jovem -> 2 lotes)
--- ES 20 (Cadeira Gamer Prata, Máx: 10000) e ES 21 (Cadeira Gamer Bronze, Máx: 12000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 90.00, 4000, 0, 20),
-(2, 120.00, 6000, 0, 20),
-(1, 60.00, 5000, 0, 21),
-(2, 80.00, 7000, 0, 21);
+-- Evento 14: Torneio de E-Sports (2 setores × 2 dias)
+-- Dia 1
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 90.00, 4000, 33),  -- Prata
+(2, 120.00, 6000, 33),
+(1, 60.00, 5000, 34),  -- Bronze
+(2, 80.00, 7000, 34);
+-- Dia 2
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 90.00, 4000, 35),
+(2, 120.00, 6000, 35),
+(1, 60.00, 5000, 36),
+(2, 80.00, 7000, 36);
 
--- Evento 15: Bazar de Natal (Entrada Simbólica -> Lote Único)
--- ES 22 (Vila Natalina, Máx: 5000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 5.00, 5000, 0, 22);
+-- Evento 15: Bazar de Natal (1 setor, 2 dias)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 5.00, 5000, 37),
+(1, 5.00, 5000, 38);
 
--- Evento 16: Workshop de Fotografia (Limitado -> Lote Único para 200 alunos)
--- ES 23 (Área de Instrução, Máx: 800)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 150.00, 200, 0, 23);
+-- Evento 16: Workshop de Fotografia
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 150.00, 200, 39);
 
--- Evento 17: Festa Eletrônica (Múltiplos Lotes)
--- ES 24 (Front Stage DJ, Máx: 2000) e ES 25 (Pista Eletrônica, Máx: 5000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 200.00, 1000, 0, 24),
-(2, 250.00, 1000, 0, 24),
-(1, 100.00, 2000, 0, 25),
-(2, 140.00, 3000, 0, 25);
+-- Evento 17: Festa Eletrônica
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 200.00, 1000, 40),
+(2, 250.00, 1000, 40),
+(1, 100.00, 2000, 41),
+(2, 140.00, 3000, 41);
 
--- Evento 18: Peça de Teatro (Lote Único - Setores Específicos)
--- ES 26 (Plateia VIP Teatro, Máx: 1200) e ES 27 (Camarote Exclusivo, Máx: 500)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 70.00, 1200, 0, 26),
-(1, 150.00, 500, 0, 27);
+-- Evento 18: Peça de Teatro
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 70.00, 1200, 42),
+(1, 150.00, 500, 43);
 
--- Evento 19: Show Acústico (Lote Único - Não esgota capacidade)
--- ES 28 (Pista Banquinho e Violão, Máx: 3000 - Carga: 2000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 60.00, 2000, 0, 28);
+-- Evento 19: Show Acústico
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 60.00, 2000, 44);
 
--- Evento 20: Palestra sobre Investimentos (Demanda Crescente)
--- ES 29 (Plenária Investidores, Máx: 1400) e ES 30 (Galeria de Estudantes, Máx: 1000)
-INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, sold_tickets, event_sector_id) VALUES
-(1, 100.00, 700, 0, 29),
-(2, 150.00, 700, 0, 29),
-(1, 70.00, 1000, 0, 30);
+-- Evento 20: Palestra sobre Investimentos
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id) VALUES
+(1, 100.00, 700, 45),
+(2, 150.00, 700, 45),
+(1, 70.00, 1000, 46);
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS vw_event_min_details AS
+-- =================================================================
+-- Batch Allotments (cota por tipo de ingresso, Lei 12.933/2013)
+-- Padrão: FULL=60%, HALF=40% por batch (piso de 40% garantido)
+-- =================================================================
+
+-- ─────── Evento 1: Rock Fest 2025 (batches 1-8) ───────
+-- Batch 1 (ES1, total 500): FULL 300, HALF 200
+-- Batch 2 (ES1, total 1000): FULL 600, HALF 400
+-- Batch 3 (ES1, total 500): FULL 300, HALF 200
+-- Batch 4 (ES2, total 1500): FULL 900, HALF 600
+-- Batch 5 (ES2, total 2000): FULL 1200, HALF 800
+-- Batch 6 (ES2, total 1500): FULL 900, HALF 600
+-- Batch 7 (ES3, total 400): FULL 240, HALF 160
+-- Batch 8 (ES3, total 600): FULL 360, HALF 240
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 300, 0, NULL, NOW(), NOW(), 1), (2, 200, 0, NULL, NOW(), NOW(), 1),
+(1, 600, 0, NULL, NOW(), NOW(), 2), (2, 400, 0, NULL, NOW(), NOW(), 2),
+(1, 300, 0, NULL, NOW(), NOW(), 3), (2, 200, 0, NULL, NOW(), NOW(), 3),
+(1, 900, 0, NULL, NOW(), NOW(), 4), (2, 600, 0, NULL, NOW(), NOW(), 4),
+(1,1200, 0, NULL, NOW(), NOW(), 5), (2, 800, 0, NULL, NOW(), NOW(), 5),
+(1, 900, 0, NULL, NOW(), NOW(), 6), (2, 600, 0, NULL, NOW(), NOW(), 6),
+(1, 240, 0, NULL, NOW(), NOW(), 7), (2, 160, 0, NULL, NOW(), NOW(), 7),
+(1, 360, 0, NULL, NOW(), NOW(), 8), (2, 240, 0, NULL, NOW(), NOW(), 8);
+
+-- ─────── Evento 2: Spring Boot Conf (batches 9-12) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 300, 0, NULL, NOW(), NOW(),  9), (2, 200, 0, NULL, NOW(), NOW(),  9),  -- 500 total
+(1,1200, 0, NULL, NOW(), NOW(), 10), (2, 800, 0, NULL, NOW(), NOW(), 10),  -- 2000 total
+(1, 120, 0, NULL, NOW(), NOW(), 11), (2,  80, 0, NULL, NOW(), NOW(), 11),  -- 200 total
+(1, 300, 0, NULL, NOW(), NOW(), 12), (2, 200, 0, NULL, NOW(), NOW(), 12);  -- 500 total
+
+-- ─────── Evento 3: Festival Gastronômico (batch 13) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 2400, 0, NULL, NOW(), NOW(), 13), (2, 1600, 0, NULL, NOW(), NOW(), 13);  -- 4000 total
+
+-- ─────── Evento 4: Maratona Tech (batch 14) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 600, 0, NULL, NOW(), NOW(), 14), (2, 400, 0, NULL, NOW(), NOW(), 14);  -- 1000 total
+
+-- ─────── Evento 5: Concerto de Jazz (batches 15-16) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 480, 0, NULL, NOW(), NOW(), 15), (2, 320, 0, NULL, NOW(), NOW(), 15),  -- 800 total
+(1, 120, 0, NULL, NOW(), NOW(), 16), (2,  80, 0, NULL, NOW(), NOW(), 16);  -- 200 total
+
+-- ─────── Evento 6: Expo Arte Digital (batches 17-22, 6 dias) ───────
+-- Cada batch: 3000 total
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 1800, 0, NULL, NOW(), NOW(), 17), (2, 1200, 0, NULL, NOW(), NOW(), 17),
+(1, 1800, 0, NULL, NOW(), NOW(), 18), (2, 1200, 0, NULL, NOW(), NOW(), 18),
+(1, 1800, 0, NULL, NOW(), NOW(), 19), (2, 1200, 0, NULL, NOW(), NOW(), 19),
+(1, 1800, 0, NULL, NOW(), NOW(), 20), (2, 1200, 0, NULL, NOW(), NOW(), 20),
+(1, 1800, 0, NULL, NOW(), NOW(), 21), (2, 1200, 0, NULL, NOW(), NOW(), 21),
+(1, 1800, 0, NULL, NOW(), NOW(), 22), (2, 1200, 0, NULL, NOW(), NOW(), 22);
+
+-- ─────── Evento 7: Samba de Raiz (batches 23-25) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 600, 0, NULL, NOW(), NOW(), 23), (2, 400, 0, NULL, NOW(), NOW(), 23),  -- 1000 total
+(1,1200, 0, NULL, NOW(), NOW(), 24), (2, 800, 0, NULL, NOW(), NOW(), 24),  -- 2000 total
+(1, 300, 0, NULL, NOW(), NOW(), 25), (2, 200, 0, NULL, NOW(), NOW(), 25);  -- 500 total
+
+-- ─────── Evento 8: Feira de Livros (batches 26-29, 4 dias) ───────
+-- Cada batch: 1400 total
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 840, 0, NULL, NOW(), NOW(), 26), (2, 560, 0, NULL, NOW(), NOW(), 26),
+(1, 840, 0, NULL, NOW(), NOW(), 27), (2, 560, 0, NULL, NOW(), NOW(), 27),
+(1, 840, 0, NULL, NOW(), NOW(), 28), (2, 560, 0, NULL, NOW(), NOW(), 28),
+(1, 840, 0, NULL, NOW(), NOW(), 29), (2, 560, 0, NULL, NOW(), NOW(), 29);
+
+-- ─────── Evento 9: Show de Comédia (batches 30-31) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 720, 0, NULL, NOW(), NOW(), 30), (2, 480, 0, NULL, NOW(), NOW(), 30),  -- 1200 total
+(1, 180, 0, NULL, NOW(), NOW(), 31), (2, 120, 0, NULL, NOW(), NOW(), 31);  -- 300 total
+
+-- ─────── Evento 10: Palestra IA (batches 32-33) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 600, 0, NULL, NOW(), NOW(), 32), (2, 400, 0, NULL, NOW(), NOW(), 32),  -- 1000
+(1, 600, 0, NULL, NOW(), NOW(), 33), (2, 400, 0, NULL, NOW(), NOW(), 33);  -- 1000
+
+-- ─────── Evento 11: Aula de Yoga (batch 34) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 300, 0, NULL, NOW(), NOW(), 34), (2, 200, 0, NULL, NOW(), NOW(), 34);  -- 500 total
+
+-- ─────── Evento 12: Circuito de Corrida (batches 35-37) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1,1200, 0, NULL, NOW(), NOW(), 35), (2, 800, 0, NULL, NOW(), NOW(), 35),  -- 2000
+(1,1800, 0, NULL, NOW(), NOW(), 36), (2,1200, 0, NULL, NOW(), NOW(), 36),  -- 3000
+(1, 600, 0, NULL, NOW(), NOW(), 37), (2, 400, 0, NULL, NOW(), NOW(), 37);  -- 1000
+
+-- ─────── Evento 13: Festival de Cinema Indie (batches 38-43, 6 dias) ───────
+-- Cada batch: 800 total
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 480, 0, NULL, NOW(), NOW(), 38), (2, 320, 0, NULL, NOW(), NOW(), 38),
+(1, 480, 0, NULL, NOW(), NOW(), 39), (2, 320, 0, NULL, NOW(), NOW(), 39),
+(1, 480, 0, NULL, NOW(), NOW(), 40), (2, 320, 0, NULL, NOW(), NOW(), 40),
+(1, 480, 0, NULL, NOW(), NOW(), 41), (2, 320, 0, NULL, NOW(), NOW(), 41),
+(1, 480, 0, NULL, NOW(), NOW(), 42), (2, 320, 0, NULL, NOW(), NOW(), 42),
+(1, 480, 0, NULL, NOW(), NOW(), 43), (2, 320, 0, NULL, NOW(), NOW(), 43);
+
+-- ─────── Evento 14: Torneio de E-Sports (batches 44-51, 2 dias × 2 setores) ───────
+-- Dia 1 Cadeira Prata (4000+6000): batches 44, 45
+-- Dia 1 Cadeira Bronze (5000+7000): batches 46, 47
+-- Dia 2 Cadeira Prata: batches 48, 49
+-- Dia 2 Cadeira Bronze: batches 50, 51
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 2400, 0, NULL, NOW(), NOW(), 44), (2, 1600, 0, NULL, NOW(), NOW(), 44),
+(1, 3600, 0, NULL, NOW(), NOW(), 45), (2, 2400, 0, NULL, NOW(), NOW(), 45),
+(1, 3000, 0, NULL, NOW(), NOW(), 46), (2, 2000, 0, NULL, NOW(), NOW(), 46),
+(1, 4200, 0, NULL, NOW(), NOW(), 47), (2, 2800, 0, NULL, NOW(), NOW(), 47),
+(1, 2400, 0, NULL, NOW(), NOW(), 48), (2, 1600, 0, NULL, NOW(), NOW(), 48),
+(1, 3600, 0, NULL, NOW(), NOW(), 49), (2, 2400, 0, NULL, NOW(), NOW(), 49),
+(1, 3000, 0, NULL, NOW(), NOW(), 50), (2, 2000, 0, NULL, NOW(), NOW(), 50),
+(1, 4200, 0, NULL, NOW(), NOW(), 51), (2, 2800, 0, NULL, NOW(), NOW(), 51);
+
+-- ─────── Evento 15: Bazar de Natal (batches 52-53, 2 dias) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 3000, 0, NULL, NOW(), NOW(), 52), (2, 2000, 0, NULL, NOW(), NOW(), 52),  -- 5000
+(1, 3000, 0, NULL, NOW(), NOW(), 53), (2, 2000, 0, NULL, NOW(), NOW(), 53);  -- 5000
+
+-- ─────── Evento 16: Workshop de Fotografia (batch 54) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 120, 0, NULL, NOW(), NOW(), 54), (2,  80, 0, NULL, NOW(), NOW(), 54);  -- 200 total
+
+-- ─────── Evento 17: Festa Eletrônica (batches 55-58) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 600, 0, NULL, NOW(), NOW(), 55), (2, 400, 0, NULL, NOW(), NOW(), 55),  -- 1000
+(1, 600, 0, NULL, NOW(), NOW(), 56), (2, 400, 0, NULL, NOW(), NOW(), 56),  -- 1000
+(1,1200, 0, NULL, NOW(), NOW(), 57), (2, 800, 0, NULL, NOW(), NOW(), 57),  -- 2000
+(1,1800, 0, NULL, NOW(), NOW(), 58), (2,1200, 0, NULL, NOW(), NOW(), 58);  -- 3000
+
+-- ─────── Evento 18: Peça de Teatro (batches 59-60) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 720, 0, NULL, NOW(), NOW(), 59), (2, 480, 0, NULL, NOW(), NOW(), 59),  -- 1200
+(1, 300, 0, NULL, NOW(), NOW(), 60), (2, 200, 0, NULL, NOW(), NOW(), 60);  --  500
+
+-- ─────── Evento 19: Show Acústico (batch 61) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 1200, 0, NULL, NOW(), NOW(), 61), (2, 800, 0, NULL, NOW(), NOW(), 61);  -- 2000
+
+-- ─────── Evento 20: Palestra Investimentos (batches 62-64) ───────
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
+(1, 420, 0, NULL, NOW(), NOW(), 62), (2, 280, 0, NULL, NOW(), NOW(), 62),  -- 700
+(1, 420, 0, NULL, NOW(), NOW(), 63), (2, 280, 0, NULL, NOW(), NOW(), 63),  -- 700
+(1, 600, 0, NULL, NOW(), NOW(), 64), (2, 400, 0, NULL, NOW(), NOW(), 64);  -- 1000
+
+DROP MATERIALIZED VIEW IF EXISTS vw_event_min_details;
+
+CREATE MATERIALIZED VIEW vw_event_min_details AS
 SELECT
     e.event_id,
     e.title,
     e.start_date,
     ec.category_id AS category_id,
-	ec.name AS category_name,
-    v.name  AS venue_name,
-    v.city  AS venue_city,
-    v.state AS venue_state,
+    ec.name        AS category_name,
+    v.name         AS venue_name,
+    v.city         AS venue_city,
+    v.state        AS venue_state,
     prices.starting_price,
     img.image_keys
 FROM tb_events e
 INNER JOIN tb_event_categories ec ON ec.category_id = e.category_id
-INNER JOIN tb_venues v ON v.venue_id = e.venue_id
-INNER JOIN (
-    SELECT es.event_id, MIN(tb.price) AS starting_price
+INNER JOIN tb_venues v             ON v.venue_id    = e.venue_id
+LEFT JOIN (
+    SELECT
+        es.event_id,
+        MIN(
+            CASE
+                WHEN tt.name = 'FULL'     THEN tb.price
+                WHEN tt.name = 'HALF'     THEN ROUND(tb.price * 0.5, 2)
+                WHEN tt.name = 'SOLIDARY' THEN ba.price
+            END
+        ) AS starting_price
     FROM tb_event_sectors es
-    INNER JOIN tb_ticket_batches tb ON tb.event_sector_id = es.sector_id
+    INNER JOIN tb_event_date_sectors eds ON eds.event_sector_id      = es.sector_id
+    INNER JOIN tb_ticket_batches tb      ON tb.event_date_sector_id  = eds.event_date_sector_id
+    INNER JOIN tb_batch_allotments ba    ON ba.batch_id              = tb.batch_id
+    INNER JOIN tb_ticket_types tt        ON tt.ticket_type_id        = ba.ticket_type_id
     GROUP BY es.event_id
 ) prices ON prices.event_id = e.event_id
 LEFT JOIN (
@@ -526,14 +928,25 @@ AND e.visibility_id = 1;
 CREATE INDEX IF NOT EXISTS idx_vw_event_min_details_date
     ON vw_event_min_details(start_date);
 
--- para a subquery de preço
-CREATE INDEX IF NOT EXISTS idx_ticket_batches_sector_price
-    ON tb_ticket_batches(event_sector_id, price);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_vw_event_min_details_event
+    ON vw_event_min_details(event_id);
 
--- para a subquery de imagens
+-- Índice antigo idx_ticket_batches_sector_price não serve mais (coluna removida).
+DROP INDEX IF EXISTS idx_ticket_batches_sector_price;
+
+-- Novo índice cobrindo o JOIN da subquery de preços
+CREATE INDEX IF NOT EXISTS idx_ticket_batches_date_sector_price
+    ON tb_ticket_batches(event_date_sector_id, price);
+
+CREATE INDEX IF NOT EXISTS idx_event_date_sectors_event_sector
+    ON tb_event_date_sectors(event_sector_id);
+
 CREATE INDEX IF NOT EXISTS idx_event_images_event_ordination
     ON tb_event_images(event_id, ordination ASC);
 
--- para o filtro principal
 CREATE INDEX IF NOT EXISTS idx_events_status_visibility
     ON tb_events(status_id, visibility_id);
+
+CREATE INDEX IF NOT EXISTS idx_batch_allotments_available
+    ON tb_batch_allotments(batch_id, ticket_type_id)
+    WHERE quota > sold_tickets;

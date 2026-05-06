@@ -103,7 +103,7 @@ public class Venue {
     @JoinColumn(name = "status_id", nullable = false)
     private Status status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizer_id")
     private Organizer organizer;
 }

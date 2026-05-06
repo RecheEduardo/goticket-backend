@@ -1,8 +1,10 @@
 package tech.goticket.backendapi.event;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.venue.Venue;
 
@@ -20,6 +22,7 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "event_id", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long eventID;
 
     @Column(nullable = false)
@@ -35,18 +38,23 @@ public class Event {
     private LocalDateTime salesStartDate;
 
     @Column(name = "start_date", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime endDate;
 
     @Column(name = "approval_date", nullable = true)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant approvalDate;
 
     @Column(name = "register_date", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant registerDate;
 
     @Column(name = "last_update_date", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant lastUpdateDate;
 
     @ManyToOne
@@ -59,19 +67,47 @@ public class Event {
 
     @ManyToOne
     @JoinColumn(name = "visibility_id", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private EventVisibility eventVisibility;
 
     @ManyToOne
     @JoinColumn(name = "organizer_id", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Organizer organizer;
 
     @ManyToOne
     @JoinColumn(name = "venue_id", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Venue venue;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @BatchSize(size = 20)
+    private List<EventDate> eventDates = new ArrayList<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventSector> sectors = new ArrayList<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @BatchSize(size = 20)
     private List<EventImage> images = new ArrayList<>();
+
+    public void recalculateDateRange() {
+        if (eventDates == null || eventDates.isEmpty()) {
+            return;
+        }
+
+        this.startDate = eventDates.stream()
+                .map(EventDate::getStartDate)
+                .min(LocalDateTime::compareTo)
+                .orElseThrow();
+
+        this.endDate = eventDates.stream()
+                .map(EventDate::getEndDate)
+                .max(LocalDateTime::compareTo)
+                .orElseThrow();
+
+        this.lastUpdateDate = Instant.now();
+    }
 }
