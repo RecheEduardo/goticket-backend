@@ -73,6 +73,21 @@ public class EventController {
         return ResponseEntity.ok(event);
     }
 
+    @GetMapping("/mine")
+    @PreAuthorize("hasAuthority('SCOPE_ORGANIZER')")
+    public ResponseEntity<OrganizerEventListDTO> listMyEvents(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "pageSize", defaultValue = "20") int pageSize,
+            Authentication authentication) {
+
+        UUID organizerId = UUID.fromString(authentication.getName());
+        OrganizerEventListDTO events = eventService.findEventsByOrganizer(
+                organizerId,
+                PageRequest.of(page, pageSize, Sort.Direction.DESC, "registerDate"));
+
+        return ResponseEntity.ok(events);
+    }
+
     @GetMapping
     public ResponseEntity<EventMinListDTO> listApprovedPublicEvents(@RequestParam(name = "title", required = false) String title,
                                                                     @RequestParam(name = "categoryId", required = false) Long categoryId,

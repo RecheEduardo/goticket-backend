@@ -121,6 +121,20 @@ public class EventService {
     }
 
     @Transactional
+    public OrganizerEventListDTO findEventsByOrganizer(UUID organizerId, PageRequest pageRequest) {
+        var events = eventRepository.findByOrganizer_UserId(organizerId, pageRequest)
+                .map(OrganizerEventListItemDTO::new);
+
+        return new OrganizerEventListDTO(
+                pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                events.getTotalPages(),
+                events.getTotalElements(),
+                events.toList()
+        );
+    }
+
+    @Transactional
     public Event createEvent(CreateEventDTO dto, UUID requestUserId, boolean isAdmin) {
         UUID targetOrganizerId;
         if (isAdmin) {
@@ -137,7 +151,9 @@ public class EventService {
         Organizer organizer = organizerService.findById(targetOrganizerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Organizador informado não encontrado."));
 
-        EventStatus approvedStatus = eventStatusRepository.findByName(EventStatus.Values.APPROVED.name());
+        EventStatus initialStatus = isAdmin
+                ? eventStatusRepository.findByName(EventStatus.Values.APPROVED.name())
+                : eventStatusRepository.findByName(EventStatus.Values.PENDING_APPROVAL.name());
         EventVisibility privateVisibility = eventVisibilityRepository.findByName(EventVisibility.Values.PRIVATE.name())
                 .orElseThrow(() -> new ResourceNotFoundException("Visibilidade de evento não encontrada."));
 
@@ -157,7 +173,7 @@ public class EventService {
         event.setCategory(requestedCategory);
         event.setRegisterDate(now);
         event.setLastUpdateDate(now);
-        event.setStatus(approvedStatus);
+        event.setStatus(initialStatus);
         event.setVenue(requestedVenue);
         event.setOrganizer(organizer);
 
