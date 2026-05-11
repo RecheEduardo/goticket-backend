@@ -1,5 +1,6 @@
 package tech.goticket.backendapi.shared.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,26 +16,14 @@ import tech.goticket.backendapi.admin.AdminService;
 import java.time.Instant;
 
 @Configuration
+@RequiredArgsConstructor
 public class AdminUserConfig implements CommandLineRunner {
 
-    private RoleRepository roleRepository;
-    private UserRepository userRepository;
-    private AdminService adminService;
-    private StatusRepository statusRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    public AdminUserConfig(RoleRepository roleRepository,
-                           AdminService adminService,
-                           UserRepository userRepository,
-                           StatusRepository statusRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
-        this.adminService = adminService;
-        this.statusRepository = statusRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
-
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final AdminService adminService;
+    private final StatusRepository statusRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     @Transactional
