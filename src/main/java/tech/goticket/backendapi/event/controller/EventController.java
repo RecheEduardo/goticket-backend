@@ -107,6 +107,25 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<EventMinListDTO> listAllEvents(@RequestParam(name = "title", required = false) String title,
+                                                         @RequestParam(name = "categoryId", required = false) Long categoryId,
+                                                         @RequestParam(name = "statusId", required = false) Long statusId,
+                                                         @RequestParam(name = "venueState", required = false) String venueState,
+                                                         @RequestParam(name = "venueCity", required = false) String venueCity,
+                                                         @RequestParam(name = "page",defaultValue = "0") int page,
+                                                         @RequestParam(name = "pageSize",defaultValue = "10") int pageSize) {
+        var events = eventService.findAllEvents(title,
+                categoryId,
+                statusId,
+                venueState,
+                venueCity,
+                PageRequest.of(page,pageSize, Sort.Direction.ASC, "startDate"));
+
+        return ResponseEntity.ok(events);
+    }
+
     @PatchMapping(value = "/{eventId}", consumes = "application/merge-patch+json")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
     public ResponseEntity<EventFullDTO> updateEvent(@PathVariable Long eventId,

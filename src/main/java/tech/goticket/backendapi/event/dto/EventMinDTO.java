@@ -1,18 +1,24 @@
 package tech.goticket.backendapi.event.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tech.goticket.backendapi.event.Event;
+import tech.goticket.backendapi.event.EventImage;
 import tech.goticket.backendapi.event.view.EventMinDetailsView;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class EventMinDTO {
     private Long eventID;
     private String title;
     private LocalDateTime startDate;
+    private Long statusId;
     private Long categoryId;
     private String categoryName;
     private String venueName;
@@ -20,8 +26,6 @@ public class EventMinDTO {
     private String venueState;
     private BigDecimal startingPrice;
     private String[] imageKeys;
-
-    public EventMinDTO() {}
 
     public EventMinDTO(EventMinDetailsView eventMinDetailsView) {
         this.eventID = eventMinDetailsView.getEventId();
@@ -34,5 +38,20 @@ public class EventMinDTO {
         this.venueState = eventMinDetailsView.getVenueState();
         this.startingPrice = eventMinDetailsView.getStartingPrice();
         this.imageKeys = eventMinDetailsView.getImageKeys();
+    }
+
+    public EventMinDTO(Event event) {
+        this.eventID = event.getEventId();
+        this.title = event.getTitle();
+        this.startDate = event.getStartDate();
+        this.statusId = event.getStatus().getStatusId();
+        this.categoryId = event.getCategory().getCategoryId();
+        this.categoryName = event.getCategory().getName();
+        this.venueName = event.getVenue().getName();
+        this.venueCity = event.getVenue().getCity();
+        this.venueState = event.getVenue().getState();
+
+        Optional<EventImage> ei = event.getImages().stream().filter(i -> i.getOrdination().equals(0)).findAny();
+        ei.ifPresent(eventImage -> this.imageKeys = new String[]{eventImage.getS3Key()});
     }
 }

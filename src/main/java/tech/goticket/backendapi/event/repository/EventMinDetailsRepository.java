@@ -10,7 +10,4 @@ import tech.goticket.backendapi.event.view.EventMinDetailsView;
 import java.util.List;
 
 @Repository
-public interface EventMinDetailsRepository extends JpaRepository<EventMinDetailsView, Long>, JpaSpecificationExecutor<EventMinDetailsView> {
-    Page<EventMinDetailsView> findAllByCategoryId(Long categoryId, Pageable pageable);
-
-}
+public interface EventMinDetailsRepository extends JpaRepository<EventMinDetailsView, Long>, JpaSpecificationExecutor<EventMinDetailsView> {}

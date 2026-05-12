@@ -1,4 +1,4 @@
-package tech.goticket.backendapi.event.view.specifications;
+package tech.goticket.backendapi.event.specifications;
 
 import org.springframework.data.jpa.domain.Specification;
 import tech.goticket.backendapi.event.view.EventMinDetailsView;

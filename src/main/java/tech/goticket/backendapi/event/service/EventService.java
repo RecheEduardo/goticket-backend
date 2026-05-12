@@ -13,8 +13,9 @@ import tech.goticket.backendapi.event.dto.*;
 import tech.goticket.backendapi.event.enums.EventStatus;
 import tech.goticket.backendapi.event.enums.EventVisibility;
 import tech.goticket.backendapi.event.repository.*;
+import tech.goticket.backendapi.event.specifications.EventSpecifications;
 import tech.goticket.backendapi.event.view.EventMinDetailsView;
-import tech.goticket.backendapi.event.view.specifications.EventMinDetailsSpecifications;
+import tech.goticket.backendapi.event.specifications.EventMinDetailsSpecifications;
 import tech.goticket.backendapi.organizer.Organizer;
 import tech.goticket.backendapi.organizer.OrganizerService;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
@@ -132,6 +133,30 @@ public class EventService {
                 events.getTotalElements(),
                 events.toList()
         );
+    }
+
+    @Transactional
+    public EventMinListDTO findAllEvents(String title,
+                                         Long categoryId,
+                                         Long statusId,
+                                         String venueState,
+                                         String venueCity,
+                                         PageRequest pageRequest) {
+        Specification<Event> spec = Specification.allOf(
+                EventSpecifications.hasTitle(title),
+                EventSpecifications.hasCategory(categoryId),
+                EventSpecifications.hasStatus(statusId),
+                EventSpecifications.hasVenueState(venueState),
+                EventSpecifications.hasVenueCity(venueCity));
+
+        var events = eventRepository.findAll(spec, pageRequest)
+                .map(EventMinDTO::new);
+
+        return new EventMinListDTO(pageRequest.getPageNumber(),
+                pageRequest.getPageSize(),
+                events.getTotalPages(),
+                events.getTotalElements(),
+                events.toList());
     }
 
     @Transactional
