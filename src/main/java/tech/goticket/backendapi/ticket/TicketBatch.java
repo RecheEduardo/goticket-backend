@@ -44,6 +44,7 @@ public class TicketBatch {
     private Integer totalTickets;
 
     @Version
+    @JsonIgnore
     private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)

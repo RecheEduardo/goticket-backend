@@ -34,6 +34,9 @@ public class BatchAllotment {
     @Column(name = "sold_tickets", nullable = false)
     private Integer soldTickets = 0;
 
+    @Column(name = "reserved_tickets", nullable = false)
+    private Integer reservedTickets = 0;
+
     // null para FULL/HALF (derivam do batch.price); obrigatório para SOLIDARY
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
@@ -46,6 +49,7 @@ public class BatchAllotment {
 
     // Lock otimista — protege contra overbooking sob concorrência
     @Version
+    @JsonIgnore
     private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,6 +72,8 @@ public class BatchAllotment {
     }
 
     public Integer getAvailableTickets() {
-        return quota - (soldTickets != null ? soldTickets : 0);
+        int sold = soldTickets != null ? soldTickets : 0;
+        int reserved = reservedTickets != null ? reservedTickets : 0;
+        return quota - sold - reserved;
     }
 }
