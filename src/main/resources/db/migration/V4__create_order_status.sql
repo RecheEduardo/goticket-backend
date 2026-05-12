@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS tb_order_status (
-    status_id bigint PRIMARY KEY,
+    status_id BIGSERIAL PRIMARY KEY,
     name VARCHAR(40) NOT NULL,
     CONSTRAINT uq_order_status_name UNIQUE (name)
 );

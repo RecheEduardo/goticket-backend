@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS tb_orders (
-    order_id bigint PRIMARY KEY,
+    order_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     idempotency_key VARCHAR(80) NOT NULL,
     buyer_id UUID NOT NULL,
     event_id BIGINT NOT NULL,
@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS ix_orders_pending_expires
     WHERE status_id = 1;
 
 CREATE TABLE IF NOT EXISTS tb_order_items (
-    order_item_id bigint PRIMARY KEY,
+    order_item_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     order_id BIGINT NOT NULL,
     batch_allotment_id BIGINT NOT NULL,
