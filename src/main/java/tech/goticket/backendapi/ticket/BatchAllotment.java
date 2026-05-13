@@ -50,7 +50,7 @@ public class BatchAllotment {
     // Lock otimista — protege contra overbooking sob concorrência
     @Version
     @JsonIgnore
-    private Long version;
+    private Long version = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_type_id", nullable = false)

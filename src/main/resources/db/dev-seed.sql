@@ -7,11 +7,10 @@
 -- ============================================================
 
 TRUNCATE TABLE
-    -- Tabelas de venda (a serem criadas)
-    -- tb_order_items,
-    -- tb_orders,
-    -- tb_payment_events,
-    -- tb_idempotency_keys,
+    tb_order_items,
+    tb_orders,
+    tb_payment_events,
+    tb_idempotency_keys,
 
     tb_batch_allotments,
     tb_ticket_batches,
@@ -142,7 +141,7 @@ VALUES ('Rock Fest 2025', 'O Rock Fest 2025 não é apenas um evento musical, ma
 
 -- 2. Spring Boot Conf
 INSERT INTO tb_events (title, description, age_restriction, start_date, end_date, approval_date, register_date, last_update_date, category_id, status_id, organizer_id, visibility_id, venue_id)
-VALUES ('Spring Boot Conf', 'A Spring Boot Conf é o epicentro da inovação para desenvolvedores Java que buscam elevar suas habilidades ao próximo nível e dominar as tecnologias que sustentam as maiores arquiteturas de software do mundo. Neste evento intensivo, mergulharemos profundamente nas entranhas do ecossistema Spring, explorando desde as novidades do Spring Framework 6 e Spring Boot 3 até técnicas avançadas de microserviços, segurança com Spring Security e otimização de performance em ambientes cloud-native. O cronograma foi estruturado para equilibrar teoria e prática, apresentando palestras de arquitetos renomados e sessões de "live coding" onde você poderá ver, em tempo real, a resolução de problemas complexos de escalabilidade. Além do conteúdo técnico de ponta, a conferência oferece um ambiente de networking incomparável, conectando desenvolvedores juniores, seniores e líderes de tecnologia de diversas indústrias para trocar experiências sobre desafios reais de produção. Discutiremos a adoção de imagens nativas com GraalVM, o uso de Spring Data para diferentes paradigmas de persistência e como implementar observabilidade de ponta a ponta com as ferramentas mais modernas do mercado. A Spring Boot Conf é mais do que um aprendizado técnico; é uma imersão na cultura de excelência em engenharia de software. Os participantes terão acesso exclusivo a workshops práticos no período da tarde, onde poderão testar novas funcionalidades em ambientes controlados sob a supervisão de especialistas. Se você deseja construir aplicações resilientes, escaláveis e de fácil manutenção, este evento é o seu ponto de partida. Prepare seu notebook, traga suas dúvidas mais cabeludas e esteja pronto para transformar sua maneira de codificar. O futuro do backend está sendo construído agora, e a Spring Boot Conf é a sua porta de entrada para ser um protagonista nessa jornada tecnológica. Junte-se a nós para um dia inteiro de aprendizado contínuo, inspiração técnica e conexões que impulsionarão sua carreira para o topo do mercado de desenvolvimento global.', 16, '2025-11-20 09:00:00', '2025-11-20 18:00:00', NOW(), NOW(), NOW(), 2, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 7);
+VALUES ('Spring Boot Conf', 'A Spring Boot Conf é o epicentro da inovação para desenvolvedores Java que buscam elevar suas habilidades ao próximo nível e dominar as tecnologias que sustentam as maiores arquiteturas de software do mundo. Neste evento intensivo, mergulharemos profundamente nas entranhas do ecossistema Spring, explorando desde as novidades do Spring Framework 6 e Spring Boot 3 até técnicas avançadas de microserviços, segurança com Spring Security e otimização de performance em ambientes cloud-native. O cronograma foi estruturado para equilibrar teoria e prática, apresentando palestras de arquitetos renomados e sessões de "live coding" onde você poderá ver, em tempo real, a resolução de problemas complexos de escalabilidade. Além do conteúdo técnico de ponta, a conferência oferece um ambiente de networking incomparável, conectando desenvolvedores juniores, seniores e líderes de tecnologia de diversas indústrias para trocar experiências sobre desafios reais de produção. Discutiremos a adoção de imagens nativas com GraalVM, o uso de Spring Data para diferentes paradigmas de persistência e como implementar observabilidade de ponta a ponta com as ferramentas mais modernas do mercado. A Spring Boot Conf é mais do que um aprendizado técnico; é uma imersão na cultura de excelência em engenharia de software. Os participantes terão acesso exclusivo a workshops práticos no período da tarde, onde poderão testar novas funcionalidades em ambientes controlados sob a supervisão de especialistas. Se você deseja construir aplicações resilientes, escaláveis e de fácil manutenção, este evento é o seu ponto de partida. Prepare seu notebook, traga suas dúvidas mais cabeludas e esteja pronto para transformar sua maneira de codificar. O futuro do backend está sendo construído agora, e a Spring Boot Conf é a sua porta de entrada para ser um protagonista nessa jornada tecnológica. Junte-se a nós para um dia inteiro de aprendizado contínuo, inspiração técnica e conexões que impulsionarão sua carreira para o topo do mercado de desenvolvimento global.', 16, '2026-11-20 09:00:00', '2026-11-20 18:00:00', NOW(), NOW(), NOW(), 2, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 7);
 
 -- 3. Festival Gastronômico
 INSERT INTO tb_events (title, description, age_restriction, start_date, end_date, approval_date, register_date, last_update_date, category_id, status_id, organizer_id, visibility_id, venue_id)
@@ -337,7 +336,7 @@ INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_dat
 ('2025-12-01 18:00:00', '2025-12-02 02:00:00', NOW(), NOW(), 2, 1);
 
 INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
-('2025-11-20 09:00:00', '2025-11-20 18:00:00', NOW(), NOW(), 2, 2);
+('2026-11-20 09:00:00', '2026-11-20 18:00:00', NOW(), NOW(), 2, 2);
 
 INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id) VALUES
 ('2025-11-25 12:00:00', '2025-11-25 22:00:00', NOW(), NOW(), 2, 3);
@@ -658,7 +657,7 @@ INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_se
 -- ─────── Batch Allotments (cota por tipo de ingresso, Lei 12.933/2013) ───────
 -- Padrão: FULL=60%, HALF=40% por batch (piso de 40% garantido)
 
--- Evento 1: Rock Fest 2025 (batches 1-8)
+-- Evento 1: Rock Fest 2025 (batches 1-16)
 INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
 (1,  300, 0, NULL, NOW(), NOW(), 1), (2, 200, 0, NULL, NOW(), NOW(), 1),
 (1,  600, 0, NULL, NOW(), NOW(), 2), (2, 400, 0, NULL, NOW(), NOW(), 2),
@@ -669,7 +668,7 @@ INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, reg
 (1,  240, 0, NULL, NOW(), NOW(), 7), (2, 160, 0, NULL, NOW(), NOW(), 7),
 (1,  360, 0, NULL, NOW(), NOW(), 8), (2, 240, 0, NULL, NOW(), NOW(), 8);
 
--- Evento 2: Spring Boot Conf (batches 9-12)
+-- Evento 2: Spring Boot Conf (batches 17-...)
 INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id) VALUES
 (1,  300, 0, NULL, NOW(), NOW(),  9), (2, 200, 0, NULL, NOW(), NOW(),  9),
 (1, 1200, 0, NULL, NOW(), NOW(), 10), (2, 800, 0, NULL, NOW(), NOW(), 10),
