@@ -8,10 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
-import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
-import tech.goticket.backendapi.shared.exception.PatchProgressingException;
-import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
+import tech.goticket.backendapi.shared.exception.*;
 import tech.goticket.backendapi.shared.exception.user.*;
 
 import java.time.LocalDateTime;
@@ -181,5 +178,38 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SoldOutException.class)
+    public ResponseEntity<ApiError> soldOutException(SoldOutException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.CONFLICT.value())
+                .status(HttpStatus.CONFLICT.name())
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ReservationContentionException.class)
+    public ResponseEntity<ApiError> reservationContentionException(ReservationContentionException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.CONFLICT.value())
+                .status(HttpStatus.CONFLICT.name())
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> conflictException(ConflictException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.CONFLICT.value())
+                .status(HttpStatus.CONFLICT.name())
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
     }
 }
