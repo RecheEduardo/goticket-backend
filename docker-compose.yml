@@ -1,4 +1,51 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: goticket_postgres
+    environment:
+      POSTGRES_DB: GoTicketDB
+      POSTGRES_USER: goticket
+      POSTGRES_PASSWORD: goticket
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U goticket -d GoTicketDB" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: goticket_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: goticket_stripe
+    profiles:
+      - stripe
+    command: >
+      listen
+        --api-key ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+        --forward-to host.docker.internal:8080/webhooks/stripe
+        --skip-verify
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+    restart: unless-stopped
+
   localstack:
     container_name: localstack_s3
     image: localstack/localstack:3.0.2
@@ -14,3 +61,5 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./localstack/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
       - "./mock-images:/seed-images:ro"
+volumes:
+  postgres_data:
