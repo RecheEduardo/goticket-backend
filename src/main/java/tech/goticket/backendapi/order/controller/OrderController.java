@@ -8,10 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.order.Order;
-import tech.goticket.backendapi.order.dto.OrderResponse;
-import tech.goticket.backendapi.order.dto.PlaceOrderRequest;
-import tech.goticket.backendapi.order.dto.QuoteRequest;
-import tech.goticket.backendapi.order.dto.QuoteResponse;
+import tech.goticket.backendapi.order.dto.*;
 import tech.goticket.backendapi.order.service.OrderService;
 
 import java.net.URI;
@@ -25,15 +22,15 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
-    public ResponseEntity<OrderResponse> placeOrder(
+    public ResponseEntity<PlaceOrderResponse> placeOrder(
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody PlaceOrderRequest request,
             Authentication authentication) {
         UUID buyerId = UUID.fromString(authentication.getName());
-        Order order = orderService.placeOrder(request, buyerId, idempotencyKey);
+        PlaceOrderResponse response = orderService.placeOrder(request, buyerId, idempotencyKey);
 
-        return ResponseEntity.created(URI.create("/orders/" + order.getOrderId()))
-                .body(OrderResponse.from(order));
+        return ResponseEntity.created(URI.create("/orders/" + response.orderId()))
+                .body(response);
     }
 
     @PostMapping("/quote")

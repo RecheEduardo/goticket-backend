@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tech.goticket.backendapi.shared.exception.*;
+import tech.goticket.backendapi.shared.exception.payment.StripeIntegrationException;
 import tech.goticket.backendapi.shared.exception.user.*;
 
 import java.time.LocalDateTime;
@@ -211,5 +212,16 @@ public class GlobalExceptionHandler {
                 .errors(List.of(ex.getMessage()))
                 .build();
         return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(StripeIntegrationException.class)
+    public ResponseEntity<ApiError> stripeIntegrationException(StripeIntegrationException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.BAD_GATEWAY.value())
+                .status(HttpStatus.BAD_GATEWAY.name())
+                .errors(List.of("Falha ao comunicar com gateway de pagamento. Tente novamente."))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_GATEWAY);
     }
 }

@@ -177,6 +177,14 @@ public class OrderPersistenceService {
         return saved;
     }
 
+    @Transactional
+    public Order attachPaymentIntent(Long orderId, String paymentIntentId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order não encontrada: " + orderId));
+        order.setPaymentIntentId(paymentIntentId);
+        return orderRepository.save(order);
+    }
+
     private void validateEventCanReceiveSales(EventDate eventDate) {
         var event = eventDate.getEvent();
 

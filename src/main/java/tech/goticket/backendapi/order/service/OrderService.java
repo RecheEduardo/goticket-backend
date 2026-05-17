@@ -1,7 +1,10 @@
 package tech.goticket.backendapi.order.service;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -12,10 +15,12 @@ import tech.goticket.backendapi.fee.service.FeeCalculator;
 import tech.goticket.backendapi.order.Order;
 import tech.goticket.backendapi.order.dto.*;
 import tech.goticket.backendapi.order.repository.OrderRepository;
+import tech.goticket.backendapi.payment.service.StripeService;
 import tech.goticket.backendapi.shared.exception.ConflictException;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.ReservationContentionException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
+import tech.goticket.backendapi.shared.exception.payment.StripeIntegrationException;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.enums.TicketType;
 import tech.goticket.backendapi.ticket.repository.BatchAllotmentRepository;
@@ -33,24 +38,47 @@ public class OrderService {
     private static final int MAX_RESERVATION_ATTEMPTS = 3;
     private static final long INITIAL_BACKOFF_MS = 50L;
 
+    @Value("${stripe.publishable.key}")
+    private String stripePublishableKey;
+
     private final OrderPersistenceService persistenceService;
     private final OrderRepository orderRepository;
     private final EventDateRepository eventDateRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final BatchAllotmentRepository batchAllotmentRepository;
     private final FeeCalculator feeCalculator;
+    private final StripeService stripeService;
 
-    public Order placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey) {
+    public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey) {
         validateIdempotencyKey(idempotencyKey);
 
-        ObjectOptimisticLockingFailureException lastException = null;
+        Order order = createOrderWithReservation(request, buyerId, idempotencyKey);
+        if (order.getPaymentIntentId() != null) {
+            return PlaceOrderResponse.from(
+                    order,
+                    fetchClientSecret(order.getPaymentIntentId()),
+                    stripePublishableKey
+            );
+        }
 
+        PaymentIntent intent;
+        try {
+            intent = stripeService.createPaymentIntent(order);
+        } catch (StripeIntegrationException e) {
+            throw e;
+        }
+
+        Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), intent.getId());
+
+        return PlaceOrderResponse.from(updated, intent.getClientSecret(), stripePublishableKey);
+    }
+
+    private Order createOrderWithReservation(PlaceOrderRequest request, UUID buyerId, String idempotencyKey) {
         for (int attempt = 0; attempt < MAX_RESERVATION_ATTEMPTS; attempt++) {
             try {
                 return persistenceService.executePlaceOrder(request, buyerId, idempotencyKey);
             }
             catch (ObjectOptimisticLockingFailureException e) {
-                lastException = e;
                 log.warn("Optimistic lock conflict on attempt {}/{}: {}",
                         attempt + 1, MAX_RESERVATION_ATTEMPTS, e.getMessage());
                 sleepWithBackoff(attempt);
@@ -66,10 +94,17 @@ public class OrderService {
                 throw e;
             }
         }
-
-        log.error("Reservation contention persisted after {} attempts", MAX_RESERVATION_ATTEMPTS, lastException);
         throw new ReservationContentionException(
-                "Não foi possível reservar os ingressos: muita contenção. Tente de novo em alguns segundos.");
+                "Não foi possível reservar os ingressos após " + MAX_RESERVATION_ATTEMPTS + ". Tente de novo em alguns segundos.");
+    }
+
+    private String fetchClientSecret(String paymentIntentId) {
+        try {
+            return PaymentIntent.retrieve(paymentIntentId).getClientSecret();
+        } catch (StripeException e) {
+            throw new StripeIntegrationException(
+                    "Falha ao recuperar PaymentIntent existente: " + paymentIntentId, e);
+        }
     }
 
     private void validateIdempotencyKey(String key) {
