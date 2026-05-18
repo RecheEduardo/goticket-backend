@@ -55,6 +55,7 @@ public class SecurityConfig  {
                         .requestMatchers(HttpMethod.GET,"/event-categories/{categoryId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/venues/{venueId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/venues/*/sector-map").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhooks/stripe").permitAll()
                         .requestMatchers(HttpMethod.GET, "/error").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable()) // apenas desativar em dev - TODO: review em prod

@@ -38,7 +38,7 @@ public class ReservationService {
         return saved;
     }
 
-    public BatchAllotment release(Long allotmentId, int quantity) {
+    public BatchAllotment releaseReservation(Long allotmentId, int quantity) {
         BatchAllotment allotment = allotmentRepository.findById(allotmentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Allotment não encontrado: " + allotmentId));
@@ -52,6 +52,12 @@ public class ReservationService {
         BatchAllotment allotment = allotmentRepository.findById(allotmentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Allotment não encontrado: " + allotmentId));
+
+        if (allotment.getReservedTickets() < quantity) {
+            throw new IllegalStateException(
+                    "Allotment " + allotmentId + " tem reserved=" +
+                            allotment.getReservedTickets() + " mas confirmação pede " + quantity);
+        }
 
         allotment.setReservedTickets(Math.max(0, allotment.getReservedTickets() - quantity));
         allotment.setSoldTickets(allotment.getSoldTickets() + quantity);
