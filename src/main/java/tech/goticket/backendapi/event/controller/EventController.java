@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tech.goticket.backendapi.event.Event;
+import tech.goticket.backendapi.event.enums.EventStatus;
 import tech.goticket.backendapi.event.enums.EventVisibility;
 import tech.goticket.backendapi.event.dto.*;
 import tech.goticket.backendapi.event.service.EventService;
@@ -152,6 +153,23 @@ public class EventController {
         }
 
         eventService.updateVisibility(eventId, newVisibility, userId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{eventId}/status")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<Void> updateEventStatus(
+            @PathVariable Long eventId,
+            @RequestBody Map<String, EventStatus.Values> payload) {
+
+        var newStatus = payload.get("status");
+
+        if (newStatus == null) {
+            throw new InvalidArgumentException("O campo 'status' é obrigatório.");
+        }
+
+        eventService.updateStatus(eventId, newStatus);
 
         return ResponseEntity.ok().build();
     }
