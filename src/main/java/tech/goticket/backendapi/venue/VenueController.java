@@ -79,7 +79,7 @@ public class VenueController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_ORGANIZER')")
-    public ResponseEntity<Void> createNewVenue(@Valid @RequestBody CreateVenueDTO dto, Authentication authentication) {
+    public ResponseEntity<VenueDetailDTO> createNewVenue(@Valid @RequestBody CreateVenueDTO dto, Authentication authentication) {
         boolean isCNPJ = DocumentValidator.isCNPJ(dto.CNPJ());
         if(!isCNPJ) { throw new InvalidArgumentException("CNPJ informado é inválido."); }
 
@@ -128,7 +128,8 @@ public class VenueController {
 
         venueService.saveVenue(newVenue);
 
-        return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueId())).build();
+        return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueId()))
+                .body(VenueDetailDTO.fromEntity(newVenue));
     }
 
     @PatchMapping(value = "/{venueId}", consumes = "application/merge-patch+json")

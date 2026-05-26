@@ -118,7 +118,7 @@ public class EventFullDTO {
     }
 
     public record VenueDTO(
-            Long venueID, String name, String cnpj, String description,
+            Long venueId, String name, String cnpj, String description,
             String streetAddress, String streetAddressNumber,
             String neighborhood, String city, String state,
             String country, String zipCode,

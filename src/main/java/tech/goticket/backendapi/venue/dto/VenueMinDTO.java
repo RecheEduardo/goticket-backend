@@ -5,7 +5,7 @@ import tech.goticket.backendapi.venue.Venue;
 import java.time.Instant;
 
 public record VenueMinDTO(
-        Long venueID,
+        Long venueId,
         String name,
         String legalName,
         String CNPJ,
