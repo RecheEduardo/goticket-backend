@@ -12,15 +12,56 @@ import java.util.UUID;
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     @Query("""
-        SELECT oi.ticket
-        FROM OrderItem oi
-        WHERE oi.order.orderId = :orderId
-          AND oi.ticket IS NOT NULL
-        ORDER BY oi.ticket.registerDate ASC
+        SELECT t FROM Ticket t
+        JOIN FETCH t.allotment a
+        JOIN FETCH a.ticketType
+        JOIN FETCH a.batch b
+        JOIN FETCH b.eventDateSector eds
+        JOIN FETCH eds.eventSector
+        JOIN FETCH eds.eventDate ed
+        JOIN FETCH ed.event e
+        JOIN FETCH e.venue
+        JOIN FETCH t.status
+        LEFT JOIN FETCH t.eligibilityType
+        WHERE t.ticketId IN (
+            SELECT oi.ticket.ticketId FROM OrderItem oi
+            WHERE oi.order.orderId = :orderId AND oi.ticket IS NOT NULL
+        )
+        ORDER BY t.registerDate ASC
     """)
-    List<Ticket> findByOrderId(@Param("orderId") Long orderId);
+    List<Ticket> findByOrderIdWithGraph(@Param("orderId") Long orderId);
 
-    List<Ticket> findByBuyer_UserIdOrderByRegisterDateDesc(UUID buyerId);
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.allotment a
+        JOIN FETCH a.ticketType
+        JOIN FETCH a.batch b
+        JOIN FETCH b.eventDateSector eds
+        JOIN FETCH eds.eventSector
+        JOIN FETCH eds.eventDate ed
+        JOIN FETCH ed.event e
+        JOIN FETCH e.venue
+        JOIN FETCH t.status
+        LEFT JOIN FETCH t.eligibilityType
+        WHERE t.buyer.userId = :buyerId
+        ORDER BY t.registerDate DESC
+    """)
+    List<Ticket> findByBuyerWithGraph(@Param("buyerId") UUID buyerId);
 
-    Optional<Ticket> findByQrToken(String qrToken);
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.allotment a
+        JOIN FETCH a.ticketType
+        JOIN FETCH a.batch b
+        JOIN FETCH b.eventDateSector eds
+        JOIN FETCH eds.eventSector
+        JOIN FETCH eds.eventDate ed
+        JOIN FETCH ed.event e
+        JOIN FETCH e.venue
+        JOIN FETCH t.status
+        JOIN FETCH t.buyer
+        LEFT JOIN FETCH t.eligibilityType
+        WHERE t.ticketId = :ticketId
+    """)
+    Optional<Ticket> findByIdWithGraph(@Param("ticketId") UUID ticketId);
 }

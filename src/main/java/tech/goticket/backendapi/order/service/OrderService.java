@@ -138,7 +138,7 @@ public class OrderService {
         return cause.getMessage() != null && cause.getMessage().toLowerCase().contains("uq_orders_idempotency_key");
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Order getById(Long orderId, UUID requesterId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order não encontrada: " + orderId));

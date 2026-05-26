@@ -23,7 +23,7 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public TicketResponse findByIdForUser(UUID ticketId, UUID requesterId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
+        Ticket ticket = ticketRepository.findByIdWithGraph(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket não encontrado"));
 
         if (!canSeeTicket(ticket, requesterId)) {
@@ -43,14 +43,14 @@ public class TicketService {
             throw new ResourceNotFoundException("Order não encontrada");
         }
 
-        return ticketRepository.findByOrderId(orderId).stream()
+        return ticketRepository.findByOrderIdWithGraph(orderId).stream()
                 .map(TicketResponse::from)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<TicketResponse> findMyTickets(UUID buyerId) {
-        return ticketRepository.findByBuyer_UserIdOrderByRegisterDateDesc(buyerId).stream()
+        return ticketRepository.findByBuyerWithGraph(buyerId).stream()
                 .map(TicketResponse::from)
                 .toList();
     }
