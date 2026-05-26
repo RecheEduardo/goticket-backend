@@ -8,6 +8,7 @@ import org.hibernate.annotations.BatchSize;
 import tech.goticket.backendapi.event.enums.EventStatus;
 import tech.goticket.backendapi.event.enums.EventVisibility;
 import tech.goticket.backendapi.organizer.Organizer;
+import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.venue.Venue;
 
 import java.time.Instant;
@@ -111,5 +112,22 @@ public class Event {
                 .orElseThrow();
 
         this.lastUpdateDate = Instant.now();
+    }
+
+    public void validateSalesStartDate() {
+        if (this.salesStartDate == null) return;
+
+        if (this.startDate == null) {
+            throw new InvalidArgumentException("Data de início das vendas exige que o evento tenha pelo menos uma data definida.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (!this.salesStartDate.isAfter(now)) {
+            throw new InvalidArgumentException("Data de início das vendas deve ser no futuro.");
+        }
+
+        if (!salesStartDate.isBefore(this.startDate)) {
+            throw new InvalidArgumentException("Data de início das vendas deve ser anterior à data de início do evento.");
+        }
     }
 }

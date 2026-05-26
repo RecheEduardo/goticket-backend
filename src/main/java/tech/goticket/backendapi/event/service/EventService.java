@@ -29,6 +29,7 @@ import tech.goticket.backendapi.venue.Venue;
 import tech.goticket.backendapi.venue.VenueRepository;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -212,6 +213,8 @@ public class EventService {
 
         event.recalculateDateRange();
 
+        event.validateSalesStartDate();
+
         return eventRepository.save(event);
     }
 
@@ -245,6 +248,7 @@ public class EventService {
         try {
             objectMapper.readerForUpdating(existingEvent).readValue(patchNode);
             existingEvent.setLastUpdateDate(Instant.now());
+            existingEvent.validateSalesStartDate();
             Event saved = eventRepository.save(existingEvent);
 
             String venueMapUrl = fileStorageService.resolvePublicUrl(
@@ -252,6 +256,8 @@ public class EventService {
             );
 
             return new EventFullDTO(saved, venueMapUrl);
+        } catch (InvalidArgumentException ie) {
+            throw ie;
         } catch (Exception e) {
             throw new PatchProgressingException("Erro ao atualizar evento.");
         }

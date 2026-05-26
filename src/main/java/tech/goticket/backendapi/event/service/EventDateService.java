@@ -49,6 +49,7 @@ public class EventDateService {
 
         EventDate created = attachEventDate(event, start, end);
         event.recalculateDateRange();
+        event.validateSalesStartDate();
 
         eventRepository.save(event);
         return created;
@@ -72,6 +73,7 @@ public class EventDateService {
         target.setLastUpdateDate(Instant.now());
 
         event.recalculateDateRange();
+        event.validateSalesStartDate();
 
         eventRepository.save(event);
         return target;
