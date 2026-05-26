@@ -44,6 +44,11 @@ public class EventFullDTO {
                 .map(EventDateFullDTO::new)
                 .toList();
 
+        this.sectors = event.getSectors().stream()
+                .sorted(Comparator.comparing(EventSector::getName))
+                .map(EventSectorSummaryDTO::new)
+                .toList();
+
         this.images = event.getImages().stream()
                 .sorted(Comparator.comparing(EventImage::getOrdination))
                 .map(ImageDTO::new)
@@ -70,7 +75,30 @@ public class EventFullDTO {
     private OrganizerDTO organizer;
     private VenueDTO venue;
     private List<EventDateFullDTO> eventDates;
+    private List<EventSectorSummaryDTO> sectors;
     private List<ImageDTO> images;
+
+    public record EventSectorSummaryDTO(
+            Long sectorId,
+            String name,
+            String description,
+            boolean hasNumberedSeats,
+            Long venueSectorId,
+            String mapElementId,
+            Integer venueSectorMaxCapacity
+    ) {
+        public EventSectorSummaryDTO(EventSector s) {
+            this(
+                    s.getSectorId(),
+                    s.getName(),
+                    s.getDescription(),
+                    s.isHasNumberedSeats(),
+                    s.getVenueSectorId(),
+                    s.getMapElementId(),
+                    s.getVenueSector() != null ? s.getVenueSector().getMaxCapacity() : null
+            );
+        }
+    }
 
     public record CategoryDTO(Long id, String name, String slug) {
         public CategoryDTO(EventCategory c) {

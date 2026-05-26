@@ -358,6 +358,25 @@ public class EventService {
     }
 
     @Transactional
+    public void updateStatus(Long eventId, EventStatus.Values statusValue) {
+        Event event = eventRepository.findByEventId(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado."));
+
+        if (event.getStatus().getName().equals(statusValue.name())) {
+            throw new InvalidArgumentException("O evento já possui o status informado.");
+        }
+
+        EventStatus status = eventStatusRepository.findByName(statusValue.name());
+        if (status == null) {
+            throw new ResourceNotFoundException("Status de evento não encontrado no sistema.");
+        }
+
+        event.setStatus(status);
+        event.setLastUpdateDate(Instant.now());
+        eventRepository.save(event);
+    }
+
+    @Transactional
     public void deleteEventById(Long eventId, UUID userId) {
         Event existingEvent = eventRepository.findByEventId(eventId)
                 .orElseThrow(() -> new InvalidArgumentException("Evento não encontrado"));
