@@ -2,7 +2,6 @@ package tech.goticket.backendapi.order.service;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tech.goticket.backendapi.event.EventDate;
 import tech.goticket.backendapi.event.repository.EventDateRepository;
 import tech.goticket.backendapi.fee.dto.FeeBreakdown;
@@ -152,10 +152,15 @@ public class OrderService {
         return order;
     }
 
-    @Transactional
-    public Page<OrderListItemDTO> listOrdersOfBuyer(UUID buyerId, Pageable pageable) {
-        return orderRepository.findByBuyer_UserId(buyerId, pageable)
-                .map(OrderListItemDTO::from);
+    @Transactional(readOnly = true)
+    public MyOrderListDTO listMyOrders(UUID buyerId, Pageable pageable) {
+        var orders = orderRepository.findMyOrders(buyerId, pageable);
+
+        return new MyOrderListDTO(orders.getNumber(),
+                                  orders.getSize(),
+                                  orders.getTotalPages(),
+                                  orders.getTotalElements(),
+                                  orders.getContent());
     }
 
     @Transactional

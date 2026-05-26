@@ -75,16 +75,13 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
-    public ResponseEntity<Page<OrderListItemDTO>> listMyOrders(@RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "20") int pageSize,
-                                                         Authentication authentication) {
-        UUID requesterId = UUID.fromString(authentication.getName());
-        Page<OrderListItemDTO> orders = orderService.listOrdersOfBuyer(
-                requesterId,
-                PageRequest.of(page, pageSize, Sort.by("placedAt").descending()));
+    public ResponseEntity<MyOrderListDTO> listMyOrders(@RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "20") int pageSize,
+                                                                 Authentication authentication) {
+        UUID buyerId = UUID.fromString(authentication.getName());
+        MyOrderListDTO orders = orderService.listMyOrders(buyerId, PageRequest.of(page, pageSize));
         return ResponseEntity.ok(orders);
     }
-
     @PostMapping("/{orderId}/cancel")
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
     public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long orderId,
