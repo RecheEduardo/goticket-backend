@@ -2,34 +2,39 @@ package tech.goticket.backendapi.order.service;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.event.EventDate;
 import tech.goticket.backendapi.event.repository.EventDateRepository;
 import tech.goticket.backendapi.fee.dto.FeeBreakdown;
 import tech.goticket.backendapi.fee.service.FeeCalculator;
+import tech.goticket.backendapi.idempotency.service.IdempotencyService;
 import tech.goticket.backendapi.order.Order;
+import tech.goticket.backendapi.order.OrderItem;
 import tech.goticket.backendapi.order.dto.*;
+import tech.goticket.backendapi.order.enums.OrderStatus;
 import tech.goticket.backendapi.order.repository.OrderRepository;
+import tech.goticket.backendapi.order.repository.OrderStatusRepository;
 import tech.goticket.backendapi.payment.service.StripeService;
-import tech.goticket.backendapi.shared.exception.ConflictException;
-import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
-import tech.goticket.backendapi.shared.exception.ReservationContentionException;
-import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
+import tech.goticket.backendapi.shared.exception.*;
 import tech.goticket.backendapi.shared.exception.payment.StripeIntegrationException;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.enums.TicketType;
 import tech.goticket.backendapi.ticket.repository.BatchAllotmentRepository;
 import tech.goticket.backendapi.ticket.repository.TicketTypeRepository;
+import tech.goticket.backendapi.user.Role;
+import tech.goticket.backendapi.user.User;
+import tech.goticket.backendapi.user.repository.UserRepository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -43,32 +48,33 @@ public class OrderService {
 
     private final OrderPersistenceService persistenceService;
     private final OrderRepository orderRepository;
+    private final OrderStatusRepository orderStatusRepository;
+    private final ReservationService reservationService;
+    private final IdempotencyService idempotencyService;
     private final EventDateRepository eventDateRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final BatchAllotmentRepository batchAllotmentRepository;
+    private final UserRepository userRepository;
     private final FeeCalculator feeCalculator;
     private final StripeService stripeService;
 
-    public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey) {
-        validateIdempotencyKey(idempotencyKey);
+    public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson) {
+        var lookup = idempotencyService.checkAndRegister(idempotencyKey, buyerId, "POST /orders", rawBodyJson);
+
+        if (lookup instanceof IdempotencyService.Replay replay) {
+            Order existing = orderRepository.findById(replay.orderId())
+                    .orElseThrow(() -> new IllegalStateException("Idempotency-Key aponta para orderId não existente."));
+            String clientSecret = (existing.getPaymentIntentId() != null)
+                    ? fetchClientSecret(existing.getPaymentIntentId())
+                    : null;
+            return PlaceOrderResponse.from(existing, clientSecret, stripePublishableKey);
+        }
 
         Order order = createOrderWithReservation(request, buyerId, idempotencyKey);
-        if (order.getPaymentIntentId() != null) {
-            return PlaceOrderResponse.from(
-                    order,
-                    fetchClientSecret(order.getPaymentIntentId()),
-                    stripePublishableKey
-            );
-        }
-
-        PaymentIntent intent;
-        try {
-            intent = stripeService.createPaymentIntent(order);
-        } catch (StripeIntegrationException e) {
-            throw e;
-        }
-
+        PaymentIntent intent = stripeService.createPaymentIntent(order);
         Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), intent.getId());
+
+        idempotencyService.linkToOrder(idempotencyKey, updated.getOrderId(), 201);
 
         return PlaceOrderResponse.from(updated, intent.getClientSecret(), stripePublishableKey);
     }
@@ -130,14 +136,61 @@ public class OrderService {
         return cause.getMessage() != null && cause.getMessage().toLowerCase().contains("uq_orders_idempotency_key");
     }
 
+    @Transactional
     public Order getById(Long orderId, UUID requesterId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order não encontrada: " + orderId));
 
-        if (!order.getBuyer().getUserId().equals(requesterId)) {
+        boolean isOwner = order.getBuyer().getUserId().equals(requesterId);
+        User isAdminCheck = userRepository.findById(requesterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não existe na base de dados."));
+        boolean isAdmin = isAdminCheck.getRole().getRoleId() == Role.Values.ADMIN.getRoleId();
+
+        if (!isAdmin && !isOwner) {
             throw new ResourceNotFoundException("Order não encontrada: " + orderId);
         }
         return order;
+    }
+
+    @Transactional
+    public Page<OrderListItemDTO> listOrdersOfBuyer(UUID buyerId, Pageable pageable) {
+        return orderRepository.findByBuyer_UserId(buyerId, pageable)
+                .map(OrderListItemDTO::from);
+    }
+
+    @Transactional
+    public Order cancelByBuyer(Long orderId, UUID requesterId, String reason) {
+        Order order = getById(orderId, requesterId);
+
+        if(!order.canCancel()) {
+            throw new ForbiddenActionException("Order com status: " + order.getStatus().getName() + " não pode ser cancelada.");
+        }
+
+        OrderStatus canceledStatus = orderStatusRepository.findByName(OrderStatus.Values.CANCELED.name())
+                .orElseThrow(() -> new IllegalStateException("OrderStatus CANCELED não existente."));
+
+        order.markCanceled(canceledStatus, reason);
+
+        Map<Long, Integer> byAllotment = countByAllotment(order);
+        for (Map.Entry<Long, Integer> e : byAllotment.entrySet()) {
+            reservationService.releaseReservation(e.getKey(), e.getValue());
+        }
+
+        Order saved = orderRepository.save(order);
+
+        if (saved.getPaymentIntentId() != null) {
+            stripeService.tryCancelPaymentIntent(saved.getPaymentIntentId(), reason);
+        }
+
+        return saved;
+    }
+
+    private Map<Long, Integer> countByAllotment(Order order) {
+        Map<Long, Integer> counts = new HashMap<>();
+        for (OrderItem item : order.getItems()) {
+            counts.merge(item.getBatchAllotment().getAllotmentId(), 1, Integer::sum);
+        }
+        return counts;
     }
 
     public QuoteResponse quote(QuoteRequest request) {

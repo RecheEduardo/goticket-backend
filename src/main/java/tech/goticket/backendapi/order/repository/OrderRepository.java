@@ -3,6 +3,8 @@ package tech.goticket.backendapi.order.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import tech.goticket.backendapi.order.Order;
 
 import java.time.Instant;
@@ -15,7 +17,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByPaymentIntentId(String paymentIntentId);
 
-    Page<Order> findByBuyer_UserId(UUID buyerId, Pageable pageable);
+    @Query("""
+        SELECT o.orderId FROM Order o
+        WHERE o.status.name = :statusName
+          AND o.expiresAt < :cutoff
+        ORDER BY o.expiresAt ASC
+    """)
+    List<Long> findOrderIdsToExpire(@Param("statusName") String statusName,
+                                    @Param("cutoff") Instant cutoff,
+                                    @Param("limit") int limit);
 
-    List<Order> findByStatus_NameAndExpiresAtBefore(String statusName, Instant cutoff);
+    Page<Order> findByBuyer_UserId(UUID buyerId, Pageable pageable);
 }

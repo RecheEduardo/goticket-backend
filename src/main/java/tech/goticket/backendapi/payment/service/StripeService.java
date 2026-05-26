@@ -3,6 +3,7 @@ package tech.goticket.backendapi.payment.service;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.RequestOptions;
+import com.stripe.param.PaymentIntentCancelParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -49,6 +50,27 @@ public class StripeService {
                     order.getOrderId(), e.getMessage(), e);
             throw new StripeIntegrationException(
                     "Não foi possível criar PaymentIntent para Order " + order.getOrderId(), e);
+        }
+    }
+
+    public void tryCancelPaymentIntent(String paymentIntentId, String reason) {
+        try {
+            PaymentIntent intent = PaymentIntent.retrieve(paymentIntentId);
+
+            String status = intent.getStatus();
+            if ("succeeded".equals(status) || "canceled".equals(status)) {
+                log.info("PI {} já está {} — sem ação", paymentIntentId, status);
+                return;
+            }
+
+            PaymentIntentCancelParams params = PaymentIntentCancelParams.builder()
+                    .setCancellationReason(PaymentIntentCancelParams.CancellationReason.REQUESTED_BY_CUSTOMER)
+                    .build();
+            intent.cancel(params);
+            log.info("PI {} cancelado na Stripe ({}).", paymentIntentId, reason);
+
+        } catch (StripeException e) {
+            log.warn("Falha (não-fatal) ao cancelar PI {}: {}", paymentIntentId, e.getMessage());
         }
     }
 }
