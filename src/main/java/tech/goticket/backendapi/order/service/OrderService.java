@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.goticket.backendapi.event.EventDate;
 import tech.goticket.backendapi.event.repository.EventDateRepository;
+import tech.goticket.backendapi.event.repository.EventImageRepository;
 import tech.goticket.backendapi.fee.dto.FeeBreakdown;
 import tech.goticket.backendapi.fee.service.FeeCalculator;
 import tech.goticket.backendapi.idempotency.service.IdempotencyService;
@@ -57,6 +58,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final FeeCalculator feeCalculator;
     private final StripeService stripeService;
+    private final EventImageRepository eventImageRepository;
 
     public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson) {
         var lookup = idempotencyService.checkAndRegister(idempotencyKey, buyerId, "POST /orders", rawBodyJson);
@@ -167,6 +169,55 @@ public class OrderService {
                                   orders.getTotalPages(),
                                   orders.getTotalElements(),
                                   orders.getContent());
+    }
+
+    @Transactional(readOnly = true)
+    public OrderSummaryResponse getSummary(Long orderId, UUID requesterId) {
+        Order order = orderRepository.findByIdWithFullGraph(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order não encontrada: " + orderId));
+
+        boolean isOwner = order.getBuyer().getUserId().equals(requesterId);
+        boolean isAdmin = userRepository.findById(requesterId)
+                .map(u -> u.getRole().getRoleId() == Role.Values.ADMIN.getRoleId())
+                .orElse(false);
+        if (!isOwner && !isAdmin) {
+            throw new ResourceNotFoundException("Order não encontrada: " + orderId);
+        }
+
+        String imageKey = eventImageRepository.findMainImageKey(order.getEvent().getEventId())
+                .orElse(null);
+
+        List<OrderSummaryItemDTO> items = order.getItems().stream()
+                .map(it -> new OrderSummaryItemDTO(
+                        it.getOrderItemId(),
+                        it.getBatchAllotment().getBatch().getEventDateSector()
+                                .getEventSector().getName(),
+                        it.getTicketType().getName(),
+                        it.getUnitPrice(),
+                        it.getFeeAmount(),
+                        it.getUnitPrice().add(it.getFeeAmount()),
+                        it.getHolderName(),
+                        it.getTicket() != null ? it.getTicket().getTicketId() : null,
+                        it.getTicket() != null ? it.getTicket().getQrToken() : null
+                ))
+                .toList();
+
+        return new OrderSummaryResponse(
+                order.getOrderId(),
+                order.getStatus().getName(),
+                order.getEvent().getEventId(),
+                order.getEvent().getTitle(),
+                imageKey,
+                order.getEventDate().getStartDate(),
+                order.getEvent().getVenue().getName(),
+                order.getEvent().getVenue().getCity(),
+                order.getSubtotal(),
+                order.getFeesTotal(),
+                order.getTotalPrice(),
+                order.getCurrency(),
+                order.getPaidAt(),
+                items
+        );
     }
 
     @Transactional

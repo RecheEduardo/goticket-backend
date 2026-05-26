@@ -95,6 +95,15 @@ public class OrderController {
         MyOrderListDTO orders = orderService.listMyOrders(buyerId, PageRequest.of(page, pageSize));
         return ResponseEntity.ok(orders);
     }
+
+    @GetMapping("/{orderId}/summary")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CLIENT', 'SCOPE_ADMIN')")
+    public ResponseEntity<OrderSummaryResponse> getOrderSummary(@PathVariable Long orderId,
+                                                                Authentication authentication) {
+        UUID requesterId = UUID.fromString(authentication.getName());
+        return ResponseEntity.ok(orderService.getSummary(orderId, requesterId));
+    }
+
     @PostMapping("/{orderId}/cancel")
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
     public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long orderId,

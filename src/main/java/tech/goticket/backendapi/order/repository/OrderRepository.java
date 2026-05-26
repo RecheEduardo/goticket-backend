@@ -70,4 +70,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         SELECT COUNT(o.orderId) FROM Order o WHERE o.buyer.userId = :buyerId
     """)
     Page<MyOrderListItemDTO> findMyOrders(@Param("buyerId") UUID buyerId, Pageable pageable);
+
+    @Query("""
+        SELECT o FROM Order o
+        JOIN FETCH o.status
+        JOIN FETCH o.event e
+        JOIN FETCH e.venue
+        JOIN FETCH o.eventDate
+        LEFT JOIN FETCH o.items it
+        LEFT JOIN FETCH it.ticketType
+        LEFT JOIN FETCH it.ticket tk
+        LEFT JOIN FETCH tk.status
+        LEFT JOIN FETCH it.batchAllotment ba
+        LEFT JOIN FETCH ba.batch b
+        LEFT JOIN FETCH b.eventDateSector eds
+        LEFT JOIN FETCH eds.eventSector
+        WHERE o.orderId = :orderId
+    """)
+    Optional<Order> findByIdWithFullGraph(@Param("orderId") Long orderId);
 }
