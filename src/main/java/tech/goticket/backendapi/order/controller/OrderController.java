@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.order.Order;
 import tech.goticket.backendapi.order.dto.*;
 import tech.goticket.backendapi.order.service.OrderService;
+import tech.goticket.backendapi.ticket.dto.TicketResponse;
+import tech.goticket.backendapi.ticket.service.TicketService;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,6 +29,7 @@ import java.util.UUID;
 public class OrderController {
     private final OrderService orderService;
     private final ObjectMapper objectMapper;
+    private final TicketService ticketService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
@@ -57,6 +61,16 @@ public class OrderController {
         UUID requesterId = UUID.fromString(authentication.getName());
         Order order = orderService.getById(orderId, requesterId);
         return ResponseEntity.ok(OrderResponse.from(order));
+    }
+
+    @GetMapping("/{orderId}/tickets")
+    @PreAuthorize("hasAnyAuthority('SCOPE_CLIENT', 'SCOPE_ADMIN')")
+    public ResponseEntity<List<TicketResponse>> getTicketsByOrder(
+            @PathVariable Long orderId,
+            Authentication authentication) {
+
+        UUID requesterId = UUID.fromString(authentication.getName());
+        return ResponseEntity.ok(ticketService.findByOrderIdForUser(orderId, requesterId));
     }
 
     @GetMapping
