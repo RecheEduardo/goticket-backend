@@ -17,10 +17,10 @@ public class IdempotencyKeyCleanupJob {
 
     private final IdempotencyKeyRepository repository;
 
-    @Scheduled(fixedDelay = 3_600_000, initialDelay = 600_000)
+    @Scheduled(fixedDelay = 3_600_000, initialDelay = 60_000)
     @Transactional
     public void cleanup() {
-        long deleted = repository.deleteByExpiresAtBefore(Instant.now());
+        Long deleted = repository.deleteByExpiresAtBefore(Instant.now());
         if (deleted > 0) {
             log.info("IdempotencyKeyCleanupJob: {} chave(s) expirada(s) removida(s).", deleted);
         }

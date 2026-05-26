@@ -26,9 +26,9 @@ public class ExpireOrdersJob {
         Instant now = Instant.now();
         List<Long> orders = orderRepository.findOrderIdsToExpire("PENDING_PAYMENT", now, BATCH_SIZE);
 
-        if (orders.isEmpty()) return;
-
         log.info("ExpireOrdersJob: {} order(s) candidata(s) a expirar", orders.size());
+
+        if (orders.isEmpty()) return;
 
         int expired = 0, raced = 0, failed = 0;
         for (Long orderId : orders) {
