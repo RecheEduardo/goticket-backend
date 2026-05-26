@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import static tech.goticket.backendapi.order.util.OrderUtils.countByAllotment;
+
 @Service
 @RequiredArgsConstructor
 public class OrderExpirationService {
@@ -58,13 +60,5 @@ public class OrderExpirationService {
                 orderId, order.getItems().size());
 
         return true;
-    }
-
-    private Map<Long, Integer> countByAllotment(Order order) {
-        Map<Long, Integer> counts = new HashMap<>();
-        for (OrderItem item : order.getItems()) {
-            counts.merge(item.getBatchAllotment().getAllotmentId(), 1, Integer::sum);
-        }
-        return counts;
     }
 }

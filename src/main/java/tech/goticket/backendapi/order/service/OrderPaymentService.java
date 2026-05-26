@@ -17,8 +17,9 @@ import tech.goticket.backendapi.ticket.Ticket;
 import tech.goticket.backendapi.ticket.service.TicketGenerationService;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
+
+import static tech.goticket.backendapi.order.util.OrderUtils.countByAllotment;
 
 @Service
 @RequiredArgsConstructor
@@ -144,14 +145,6 @@ public class OrderPaymentService {
             log.error("FALHA ao emitir refund automático para PI {}: {}",
                     paymentIntentId, e.getMessage(), e);
         }
-    }
-
-    private Map<Long, Integer> countByAllotment(Order order) {
-        Map<Long, Integer> counts = new HashMap<>();
-        for (OrderItem item : order.getItems()) {
-            counts.merge(item.getBatchAllotment().getAllotmentId(), 1, Integer::sum);
-        }
-        return counts;
     }
 
     private OrderStatus findStatus(OrderStatus.Values value) {

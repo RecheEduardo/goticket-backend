@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,6 @@ import tech.goticket.backendapi.fee.dto.FeeBreakdown;
 import tech.goticket.backendapi.fee.service.FeeCalculator;
 import tech.goticket.backendapi.idempotency.service.IdempotencyService;
 import tech.goticket.backendapi.order.Order;
-import tech.goticket.backendapi.order.OrderItem;
 import tech.goticket.backendapi.order.dto.*;
 import tech.goticket.backendapi.order.enums.OrderStatus;
 import tech.goticket.backendapi.order.repository.OrderRepository;
@@ -36,6 +34,8 @@ import tech.goticket.backendapi.user.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static tech.goticket.backendapi.order.util.OrderUtils.countByAllotment;
 
 @Service
 @RequiredArgsConstructor
@@ -245,14 +245,6 @@ public class OrderService {
         }
 
         return saved;
-    }
-
-    private Map<Long, Integer> countByAllotment(Order order) {
-        Map<Long, Integer> counts = new HashMap<>();
-        for (OrderItem item : order.getItems()) {
-            counts.merge(item.getBatchAllotment().getAllotmentId(), 1, Integer::sum);
-        }
-        return counts;
     }
 
     public QuoteResponse quote(QuoteRequest request) {
