@@ -71,7 +71,7 @@ public class OrderService {
         }
 
         Order order = createOrderWithReservation(request, buyerId, idempotencyKey);
-        PaymentIntent intent = stripeService.createPaymentIntent(order);
+        PaymentIntent intent = stripeService.createPaymentIntent(order, idempotencyKey);
         Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), intent.getId());
 
         idempotencyService.linkToOrder(idempotencyKey, updated.getOrderId(), 201);

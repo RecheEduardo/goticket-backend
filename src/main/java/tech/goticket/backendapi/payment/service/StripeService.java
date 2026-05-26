@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 public class StripeService {
     private static final Logger log = LoggerFactory.getLogger(StripeService.class);
 
-    public PaymentIntent createPaymentIntent(Order order) {
+    public PaymentIntent createPaymentIntent(Order order, String idempotencyKey) {
         long amountInCents = order.getTotalPrice()
                 .multiply(BigDecimal.valueOf(100))
                 .longValueExact();
@@ -37,7 +37,7 @@ public class StripeService {
                 .build();
 
         RequestOptions options = RequestOptions.builder()
-                .setIdempotencyKey("order: " + order.getOrderId())
+                .setIdempotencyKey("pi_create_" + idempotencyKey)
                 .build();
 
         try {
