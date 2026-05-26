@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record OrganizerMinDTO(
-        UUID userID,
+        UUID userId,
         String email,
         String organizerName,
         String legalName,
