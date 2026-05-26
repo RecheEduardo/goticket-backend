@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record ClientMinDTO(
-        UUID userID,
+        UUID userId,
         String email,
         String fullName,
         String identityDocument,

@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public record OrganizerEventListItemDTO(
-        Long eventID,
+        Long eventId,
         String title,
         String statusName,
         String visibilityName,

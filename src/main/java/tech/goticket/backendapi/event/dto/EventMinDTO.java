@@ -15,7 +15,7 @@ import java.util.Optional;
 @Setter
 @NoArgsConstructor
 public class EventMinDTO {
-    private Long eventID;
+    private Long eventId;
     private String title;
     private LocalDateTime startDate;
     private Long statusId;
@@ -28,7 +28,7 @@ public class EventMinDTO {
     private String[] imageKeys;
 
     public EventMinDTO(EventMinDetailsView eventMinDetailsView) {
-        this.eventID = eventMinDetailsView.getEventId();
+        this.eventId = eventMinDetailsView.getEventId();
         this.title = eventMinDetailsView.getTitle();
         this.startDate = eventMinDetailsView.getStartDate();
         this.categoryId = eventMinDetailsView.getCategoryId();
@@ -41,7 +41,7 @@ public class EventMinDTO {
     }
 
     public EventMinDTO(Event event) {
-        this.eventID = event.getEventId();
+        this.eventId = event.getEventId();
         this.title = event.getTitle();
         this.startDate = event.getStartDate();
         this.statusId = event.getStatus().getStatusId();

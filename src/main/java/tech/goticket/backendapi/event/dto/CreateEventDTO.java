@@ -31,5 +31,5 @@ public record CreateEventDTO(
         @Valid
         List<EventDateInputDTO> eventDates,
 
-        UUID organizerID
+        UUID organizerId
     ) {}

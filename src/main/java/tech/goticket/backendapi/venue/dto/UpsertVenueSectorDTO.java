@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record UpsertVenueSectorDTO(
-        Long sectorID,
+        Long sectorId,
         @NotBlank(message = "O nome do setor é obrigatório.")
         String name,
         @NotBlank(message = "A descrição do setor é obrigatória.")

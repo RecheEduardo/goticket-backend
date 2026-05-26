@@ -38,7 +38,7 @@ public record CreateVenueDTO(
         @NotBlank(message = "O cep do espaço é um campo obrigatório.")
         String zipCode,
 
-        UUID organizerID
+        UUID organizerId
 ) {
     public CreateVenueDTO {
         description = StringUtils.hasText(description)

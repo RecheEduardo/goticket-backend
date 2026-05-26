@@ -25,9 +25,9 @@ public record VenueDetailDTO(
         StatusRef status,
         OrganizerRef organizer
 ) {
-    public record StatusRef(Long statusID, String name) {}
+    public record StatusRef(Long statusId, String name) {}
 
-    public record OrganizerRef(UUID userID, String organizerName, String legalName, String CNPJ) {}
+    public record OrganizerRef(UUID userId, String organizerName, String legalName, String CNPJ) {}
 
     public static VenueDetailDTO fromEntity(Venue venue) {
         StatusRef statusRef = venue.getStatus() == null ? null

@@ -110,10 +110,10 @@ public class VenueService {
 
         List<VenueSector> savedSectors = sectors.stream().map(input -> {
             VenueSector venueSector;
-            if (input.sectorID() != null) {
-                venueSector = venueSectorRepository.findBySectorIdAndVenue_VenueId(input.sectorID(), venueId)
+            if (input.sectorId() != null) {
+                venueSector = venueSectorRepository.findBySectorIdAndVenue_VenueId(input.sectorId(), venueId)
                         .orElseThrow(() -> new InvalidArgumentException("Setor informado não pertence a este espaço."));
-                payloadSectorIds.add(input.sectorID());
+                payloadSectorIds.add(input.sectorId());
             } else {
                 venueSector = new VenueSector();
                 venueSector.setRegisterDate(Instant.now());

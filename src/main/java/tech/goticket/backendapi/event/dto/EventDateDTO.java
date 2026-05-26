@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public record EventDateDTO(
-        Long eventDateID,
+        Long eventDateId,
         LocalDateTime startDate,
         LocalDateTime endDate,
         Long statusId,

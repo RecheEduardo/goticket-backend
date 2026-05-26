@@ -164,12 +164,12 @@ public class EventService {
     public Event createEvent(CreateEventDTO dto, UUID requestUserId, boolean isAdmin) {
         UUID targetOrganizerId;
         if (isAdmin) {
-            if (dto.organizerID() == null) {
+            if (dto.organizerId() == null) {
                 throw new InvalidArgumentException(
                         "O ID do organizador é obrigatório quando a criação é feita por um Administrador."
                 );
             }
-            targetOrganizerId = dto.organizerID();
+            targetOrganizerId = dto.organizerId();
         } else {
             targetOrganizerId = requestUserId;
         }

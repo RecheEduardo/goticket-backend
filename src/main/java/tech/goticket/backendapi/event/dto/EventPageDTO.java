@@ -77,7 +77,7 @@ public class EventPageDTO {
     }
 
     public record EventDateSectorDTO(
-            Long eventDateSectorID,
+            Long eventDateSectorId,
             String name,
             String description,
             boolean hasNumberedSeats,
@@ -109,7 +109,7 @@ public class EventPageDTO {
     }
 
     public record AllotmentDTO(
-            Long allotmentID,
+            Long allotmentId,
             Integer batchNumber,
             BigDecimal price,
             Integer availableTickets) {

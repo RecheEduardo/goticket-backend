@@ -3,7 +3,7 @@ package tech.goticket.backendapi.venue.dto;
 import tech.goticket.backendapi.venue.VenueSector;
 
 public record VenueSectorDTO(
-        Long sectorID,
+        Long sectorId,
         String name,
         String description,
         Integer maxCapacity,
