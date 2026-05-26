@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tech.goticket.backendapi.order.repository.OrderRepository;
@@ -24,7 +25,7 @@ public class ExpireOrdersJob {
     @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
     public void expireOrders() {
         Instant now = Instant.now();
-        List<Long> orders = orderRepository.findOrderIdsToExpire("PENDING_PAYMENT", now, BATCH_SIZE);
+        List<Long> orders = orderRepository.findOrderIdsToExpire("PENDING_PAYMENT", now, PageRequest.ofSize(BATCH_SIZE));
 
         log.info("ExpireOrdersJob: {} order(s) candidata(s) a expirar", orders.size());
 

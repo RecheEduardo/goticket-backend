@@ -25,7 +25,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     """)
     List<Long> findOrderIdsToExpire(@Param("statusName") String statusName,
                                     @Param("cutoff") Instant cutoff,
-                                    @Param("limit") int limit);
+                                    Pageable pageable);
 
     Page<Order> findByBuyer_UserId(UUID buyerId, Pageable pageable);
 }
