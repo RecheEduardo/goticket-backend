@@ -153,6 +153,12 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public OrderStatusDTO getStatus(Long orderId, UUID requesterId) {
+        return orderRepository.findStatusByIdAndBuyer(orderId, requesterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order não encontrada: " + orderId));
+    }
+
+    @Transactional(readOnly = true)
     public MyOrderListDTO listMyOrders(UUID buyerId, Pageable pageable) {
         var orders = orderRepository.findMyOrders(buyerId, pageable);
 

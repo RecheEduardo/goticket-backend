@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -73,11 +74,23 @@ public class OrderController {
         return ResponseEntity.ok(ticketService.findByOrderIdForUser(orderId, requesterId));
     }
 
+    @GetMapping("/{orderId}/status")
+    @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
+    public ResponseEntity<OrderStatusDTO> getOrderStatus(@PathVariable Long orderId,
+                                                         Authentication authentication) {
+        UUID requesterId = UUID.fromString(authentication.getName());
+        OrderStatusDTO dto = orderService.getStatus(orderId, requesterId);
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(dto);
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
     public ResponseEntity<MyOrderListDTO> listMyOrders(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "20") int pageSize,
-                                                                 Authentication authentication) {
+                                                       @RequestParam(defaultValue = "20") int pageSize,
+                                                       Authentication authentication) {
         UUID buyerId = UUID.fromString(authentication.getName());
         MyOrderListDTO orders = orderService.listMyOrders(buyerId, PageRequest.of(page, pageSize));
         return ResponseEntity.ok(orders);

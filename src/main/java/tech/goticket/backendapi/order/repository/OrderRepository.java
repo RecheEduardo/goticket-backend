@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tech.goticket.backendapi.order.Order;
 import tech.goticket.backendapi.order.dto.MyOrderListItemDTO;
+import tech.goticket.backendapi.order.dto.OrderStatusDTO;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +18,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByIdempotencyKey(String idempotencyKey);
 
     Optional<Order> findByPaymentIntentId(String paymentIntentId);
+
+    @Query("""
+        SELECT new tech.goticket.backendapi.order.dto.OrderStatusDTO(o.orderId, st.name)
+        FROM Order o
+        JOIN o.status st
+        WHERE o.orderId = :orderId
+          AND o.buyer.userId = :buyerId
+    """)
+    Optional<OrderStatusDTO> findStatusByIdAndBuyer(@Param("orderId") Long orderId,
+                                                    @Param("buyerId") UUID buyerId);
 
     @Query("""
         SELECT o.orderId FROM Order o
