@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record VenueDetailDTO(
-        Long venueID,
+        Long venueId,
         String name,
         String legalName,
         String CNPJ,
