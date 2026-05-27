@@ -126,6 +126,7 @@ public class VenueController {
         );
         newVenue.setZipCode(dto.zipCode());
 
+        newVenue.setApprovalDate(now);
         venueService.saveVenue(newVenue);
 
         return ResponseEntity.created(URI.create("/venues/" + newVenue.getVenueId()))
