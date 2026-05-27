@@ -827,11 +827,6 @@ VALUES (
     NOW(), NOW(), NOW(), 9, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 2
 );
 
--- 2) Imagem principal (ordination 0)
-INSERT INTO tb_event_images (event_id, s3_key, ordination)
-SELECT e.event_id, 'events/' || e.event_id || '/cover.jpg', 0
-FROM tb_events e WHERE e.title = 'Allianz Live Experience';
-
 -- 3) Duas datas futuras
 INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id)
 SELECT date_trunc('hour', NOW()) + INTERVAL '80 days',
