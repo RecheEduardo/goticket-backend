@@ -7,10 +7,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import tech.goticket.backendapi.client.dto.ClientListDTO;
+import tech.goticket.backendapi.client.dto.ClientProfileDTO;
 import tech.goticket.backendapi.client.dto.CreateClientDTO;
+import tech.goticket.backendapi.client.dto.UpdatePasswordDTO;
 import tech.goticket.backendapi.shared.utils.DocumentValidator;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.dto.LoginResponse;
@@ -35,15 +38,10 @@ import java.util.UUID;
 public class ClientController {
 
     private final UserService userService;
-
     private final RoleRepository roleRepository;
-
     private final ClientService clientService;
-
     private final StatusRepository statusRepository;
-
     private final BCryptPasswordEncoder passwordEncoder;
-
     private final AuthTokenService authTokenService;
 
     @PostMapping
@@ -92,6 +90,14 @@ public class ClientController {
         return ResponseEntity.ok(clients);
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
+    public ResponseEntity<ClientProfileDTO> getMyProfile(Authentication authentication) {
+        return ResponseEntity.ok(
+                clientService.getProfile(UUID.fromString(authentication.getName()))
+        );
+    }
+
     @GetMapping("/{clientId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #clientId")
     public ResponseEntity<Client> getClientById(@PathVariable String clientId) {
@@ -105,10 +111,21 @@ public class ClientController {
     @PatchMapping("/{clientId}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') || authentication.name == #clientId")
     public ResponseEntity<Client> updateClient(@PathVariable String clientId,
-                                                     @RequestBody JsonNode patchNode) {
+                                               @RequestBody JsonNode patchNode,
+                                               Authentication authentication) {
         UUID uuid = UUID.fromString(clientId);
-        Client updatedClient = this.clientService.updateClient(uuid, patchNode);
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("SCOPE_ADMIN"));
 
+        Client updatedClient = this.clientService.updateClient(uuid, patchNode, isAdmin);
         return ResponseEntity.ok(updatedClient);
+    }
+
+    @PatchMapping("/{clientId}/password")
+    @PreAuthorize("authentication.name == #clientId")
+    public ResponseEntity<Void> updatePassword(@PathVariable String clientId,
+                                               @Valid @RequestBody UpdatePasswordDTO dto) {
+        clientService.updatePassword(UUID.fromString(clientId), dto);
+        return ResponseEntity.noContent().build();
     }
 }
