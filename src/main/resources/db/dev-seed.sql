@@ -43,9 +43,14 @@ INSERT INTO tb_venues (name, legal_name, cnpj, description, street_address, stre
 VALUES
 ('Espaço das Américas', 'Espaço das Américas Eventos Ltda', '12345678000199', 'Tradicional casa de shows e eventos coberta.', 'Rua Tagipuru', '795', 'Barra Funda', 'São Paulo', 'SP', 'Brasil', '01156000', NOW(), NOW(), NOW(), 1, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
 
-INSERT INTO tb_venues (name, legal_name, cnpj, description, street_address, street_address_number, neighborhood, city, state, country, zip_code, approval_date, register_date, last_update_date, status_id, organizer_id)
-VALUES
-('Allianz Parque', 'Arena Multiuso S.A.', '98765432000111', 'Estádio multiuso com capacidade para grandes shows internacionais.', 'Avenida Francisco Matarazzo', '1705', 'Água Branca', 'São Paulo', 'SP', 'Brasil', '05001200', NOW(), NOW(), NOW(), 1, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+INSERT INTO tb_venues (name, legal_name, cnpj, description, street_address, street_address_number,
+    neighborhood, city, state, country, zip_code, sector_map_s3_key,
+    approval_date, register_date, last_update_date, status_id, organizer_id)
+VALUES ('Allianz Parque', 'Arena Multiuso S.A.', '98765432000111',
+    'Estádio multiuso com capacidade para grandes shows internacionais.',
+    'Avenida Francisco Matarazzo', '1705', 'Água Branca', 'São Paulo', 'SP', 'Brasil', '05001200',
+    'venues/2/maps/sector-map.svg',
+    NOW(), NOW(), NOW(), 1, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
 
 INSERT INTO tb_venues (name, legal_name, cnpj, description, street_address, street_address_number, neighborhood, city, state, country, zip_code, approval_date, register_date, last_update_date, status_id, organizer_id)
 VALUES
@@ -86,11 +91,11 @@ VALUES ('Pista Premium', 'Área VIP próxima ao palco', 2000, NOW(), NOW(), 1),
        ('Pista Comum', 'Área geral do evento', 5000, NOW(), NOW(), 1),
        ('Mezanino', 'Área elevada com vista privilegiada', 1000, NOW(), NOW(), 1);
 
--- Allianz Parque (ID 2)
-INSERT INTO tb_venue_sectors (name, description, max_capacity, register_date, last_update_date, venue_id)
-VALUES ('Pista', 'Gramado do estádio', 15000, NOW(), NOW(), 2),
-       ('Cadeira Inferior', 'Assentos no nível inferior', 10000, NOW(), NOW(), 2),
-       ('Cadeira Superior', 'Assentos no nível superior', 12000, NOW(), NOW(), 2);
+-- Allianz Parque (ID 2) — mantém IDs 4,5,6; Pista Premium é adicionada no fim do bloco
+INSERT INTO tb_venue_sectors (name, description, max_capacity, map_element_id, register_date, last_update_date, venue_id)
+VALUES ('Pista',            'Gramado central em frente ao palco', 15000, 'pista',            NOW(), NOW(), 2),
+       ('Cadeira Nível 1',  'Arquibancada inferior numerada',     10000, 'cadeira-nivel-1',  NOW(), NOW(), 2),
+       ('Cadeira Superior', 'Arquibancada superior numerada',     12000, 'cadeira-superior', NOW(), NOW(), 2);
 
 -- Teatro Municipal (ID 3)
 INSERT INTO tb_venue_sectors (name, description, max_capacity, register_date, last_update_date, venue_id)
@@ -133,6 +138,11 @@ INSERT INTO tb_venue_sectors (name, description, max_capacity, register_date, la
 VALUES ('Setor 01', 'Cadeiras numeradas próximas ao palco', 1200, NOW(), NOW(), 10),
        ('Frisas', 'Assentos laterais', 300, NOW(), NOW(), 10),
        ('Camarote A', 'Área exclusiva superior', 500, NOW(), NOW(), 10);
+
+-- Pista Premium do Allianz — inserida ao FINAL para não deslocar os venue_sector_id
+-- já referenciados (hardcoded) pelos event_sectors dos eventos 1-20.
+INSERT INTO tb_venue_sectors (name, description, max_capacity, map_element_id, register_date, last_update_date, venue_id)
+VALUES ('Pista Premium', 'Área VIP colada ao palco', 5000, 'pista-premium', NOW(), NOW(), 2);
 
 -- ─────── Events ───────
 -- 1. Rock Fest 2025
@@ -780,3 +790,129 @@ INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, reg
 (1, 420, 0, NULL, NOW(), NOW(), 62), (2, 280, 0, NULL, NOW(), NOW(), 62),
 (1, 420, 0, NULL, NOW(), NOW(), 63), (2, 280, 0, NULL, NOW(), NOW(), 63),
 (1, 600, 0, NULL, NOW(), NOW(), 64), (2, 400, 0, NULL, NOW(), NOW(), 64);
+
+-- ============================================================
+-- Evento de referência: "Allianz Live Experience"
+-- Versão 100% INSERT...SELECT (compatível com spring.sql.init).
+-- Resolve relacionamentos por chaves naturais — sem IDs hardcoded.
+-- ============================================================
+
+-- 1) Evento (APPROVED=2, PUBLIC=1, Festas e Shows=9, Allianz=2)
+INSERT INTO tb_events (title, description, age_restriction, sales_start_date, start_date, end_date,
+    approval_date, register_date, last_update_date, category_id, status_id, organizer_id, visibility_id, venue_id)
+VALUES (
+    'Allianz Live Experience',
+    'A Allianz Live Experience transforma o Allianz Parque em palco da maior noite de '
+    || 'música do ano. Em duas noites consecutivas, uma produção internacional de grande porte '
+    || 'apresenta um espetáculo audiovisual completo: estrutura de palco 360°, sistema de som '
+    || 'line-array de última geração, painéis de LED imersivos e um show de luzes sincronizado '
+    || 'a pulseiras de RFID distribuídas na entrada, criando ondas de cor por toda a arena. '
+    || 'O público da Pista Premium desfruta de acesso exclusivo à frente do palco, com entrada '
+    || 'antecipada e área de bar dedicada. A Pista oferece a energia clássica do gramado, no '
+    || 'coração da multidão. As Cadeiras Nível 1 e Superior garantem visão panorâmica e conforto '
+    || 'de assento numerado para quem prefere assistir com tranquilidade. A abertura dos portões '
+    || 'acontece três horas antes do show principal, com line-up de convidados, praça de '
+    || 'alimentação com gastronomia urbana, ativações de patrocinadores e área de descanso. '
+    || 'A organização reforça as políticas de meia-entrada conforme a Lei 12.933/2013 e o ingresso '
+    || 'solidário, que destina parte do valor a campanhas de arrecadação de alimentos. '
+    || 'Acessibilidade completa: setores adaptados para cadeirantes e acompanhantes, sinalização '
+    || 'em braile e equipe de apoio. Recomenda-se chegar com antecedência e dar preferência ao '
+    || 'transporte público — a estação Palmeiras-Barra Funda fica a poucos minutos a pé. '
+    || 'Prepare-se para uma experiência inesquecível: duas noites, quatro setores, uma única '
+    || 'emoção coletiva sob o céu de São Paulo.',
+    18,
+    NOW() - INTERVAL '7 days',
+    date_trunc('hour', NOW()) + INTERVAL '80 days',
+    date_trunc('hour', NOW()) + INTERVAL '81 days 6 hours',
+    NOW(), NOW(), NOW(), 9, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 2
+);
+
+-- 2) Imagem principal (ordination 0)
+INSERT INTO tb_event_images (event_id, s3_key, ordination)
+SELECT e.event_id, 'events/' || e.event_id || '/cover.jpg', 0
+FROM tb_events e WHERE e.title = 'Allianz Live Experience';
+
+-- 3) Duas datas futuras
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id)
+SELECT date_trunc('hour', NOW()) + INTERVAL '80 days',
+       date_trunc('hour', NOW()) + INTERVAL '80 days 6 hours',
+       NOW(), NOW(), 2, e.event_id
+FROM tb_events e WHERE e.title = 'Allianz Live Experience';
+
+INSERT INTO tb_event_dates (start_date, end_date, register_date, last_update_date, status_id, event_id)
+SELECT date_trunc('hour', NOW()) + INTERVAL '81 days',
+       date_trunc('hour', NOW()) + INTERVAL '81 days 6 hours',
+       NOW(), NOW(), 2, e.event_id
+FROM tb_events e WHERE e.title = 'Allianz Live Experience';
+
+-- 4) Quatro setores do evento, ligados aos venue sectors do Allianz (por nome)
+INSERT INTO tb_event_sectors (name, description, register_date, last_update_date, has_numbered_seats, event_id, venue_sector_id)
+SELECT vs.name,
+       CASE vs.name
+            WHEN 'Pista Premium'    THEN 'Área VIP colada ao palco'
+            WHEN 'Pista'            THEN 'Gramado central'
+            WHEN 'Cadeira Nível 1'  THEN 'Arquibancada inferior numerada'
+            WHEN 'Cadeira Superior' THEN 'Arquibancada superior numerada'
+       END,
+       NOW(), NOW(),
+       (vs.name LIKE 'Cadeira%'),                 -- has_numbered_seats só nas cadeiras
+       e.event_id, vs.sector_id
+FROM tb_events e
+JOIN tb_venue_sectors vs ON vs.venue_id = 2
+WHERE e.title = 'Allianz Live Experience'
+  AND vs.name IN ('Pista Premium', 'Pista', 'Cadeira Nível 1', 'Cadeira Superior');
+
+-- 5) Event date sectors = produto (2 datas × 4 setores) = 8 EDS
+INSERT INTO tb_event_date_sectors (register_date, last_update_date, event_date_id, event_sector_id)
+SELECT NOW(), NOW(), ed.event_date_id, es.sector_id
+FROM tb_events e
+JOIN tb_event_dates ed   ON ed.event_id = e.event_id
+JOIN tb_event_sectors es ON es.event_id = e.event_id
+WHERE e.title = 'Allianz Live Experience';
+
+-- 6) Lotes — LOTE 1 (8 batches, um por EDS)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id)
+SELECT 1,
+       CASE es.name WHEN 'Pista Premium' THEN 350.00 WHEN 'Pista' THEN 200.00
+                    WHEN 'Cadeira Nível 1' THEN 180.00 WHEN 'Cadeira Superior' THEN 120.00 END,
+       CASE es.name WHEN 'Pista Premium' THEN 2000 WHEN 'Pista' THEN 5000
+                    WHEN 'Cadeira Nível 1' THEN 3000 WHEN 'Cadeira Superior' THEN 4000 END,
+       eds.event_date_sector_id
+FROM tb_event_date_sectors eds
+JOIN tb_event_sectors es ON es.sector_id = eds.event_sector_id
+JOIN tb_events e         ON e.event_id = es.event_id
+WHERE e.title = 'Allianz Live Experience';
+
+-- 6) Lotes — LOTE 2 (8 batches)
+INSERT INTO tb_ticket_batches (batch_number, price, total_tickets, event_date_sector_id)
+SELECT 2,
+       CASE es.name WHEN 'Pista Premium' THEN 420.00 WHEN 'Pista' THEN 250.00
+                    WHEN 'Cadeira Nível 1' THEN 220.00 WHEN 'Cadeira Superior' THEN 150.00 END,
+       CASE es.name WHEN 'Pista Premium' THEN 2500 WHEN 'Pista' THEN 7000
+                    WHEN 'Cadeira Nível 1' THEN 5000 WHEN 'Cadeira Superior' THEN 6000 END,
+       eds.event_date_sector_id
+FROM tb_event_date_sectors eds
+JOIN tb_event_sectors es ON es.sector_id = eds.event_sector_id
+JOIN tb_events e         ON e.event_id = es.event_id
+WHERE e.title = 'Allianz Live Experience';
+
+-- 7) Allotments — 3 tipos por batch (FULL 50% / HALF 40% / SOLIDARY resto) = 48 allotments
+INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, register_date, last_update_date, batch_id)
+SELECT tt.ticket_type_id,
+       CASE tt.name
+            WHEN 'FULL'     THEN (tb.total_tickets * 50 / 100)
+            WHEN 'HALF'     THEN (tb.total_tickets * 40 / 100)
+            WHEN 'SOLIDARY' THEN tb.total_tickets - (tb.total_tickets * 50 / 100) - (tb.total_tickets * 40 / 100)
+       END,
+       0,
+       CASE WHEN tt.name = 'SOLIDARY' THEN tb.price ELSE NULL END,   -- SOLIDARY exige price; FULL/HALF derivam
+       NOW(), NOW(), tb.batch_id
+FROM tb_ticket_batches tb
+JOIN tb_event_date_sectors eds ON eds.event_date_sector_id = tb.event_date_sector_id
+JOIN tb_event_sectors es       ON es.sector_id = eds.event_sector_id
+JOIN tb_events e               ON e.event_id = es.event_id
+CROSS JOIN tb_ticket_types tt
+WHERE e.title = 'Allianz Live Experience'
+  AND tt.name IN ('FULL', 'HALF', 'SOLIDARY');
+
+INSERT INTO tb_event_images (event_id, s3_key, ordination) VALUES (21, 'events/21/cover.jpg', 0);

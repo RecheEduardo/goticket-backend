@@ -47,3 +47,10 @@ if [ -d "${SEED_IMAGES_DIR}" ]; then
 else
   echo "Seed images directory not found (${SEED_IMAGES_DIR}); skipping image upload."
 fi
+
+if [ -f "${SEED_IMAGES_DIR}/mapa-allianz.svg" ]; then
+  echo "Uploading mapa-allianz.svg -> s3://${BUCKET_NAME}/venues/2/maps/sector-map.svg"
+  awslocal s3 cp "${SEED_IMAGES_DIR}/mapa-allianz.svg" \
+    "s3://${BUCKET_NAME}/venues/2/maps/sector-map.svg" \
+    --content-type "image/svg+xml"
+fi
