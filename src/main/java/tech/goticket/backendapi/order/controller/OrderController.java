@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -87,12 +87,19 @@ public class OrderController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
-    public ResponseEntity<MyOrderListDTO> listMyOrders(@RequestParam(defaultValue = "0") int page,
-                                                       @RequestParam(defaultValue = "20") int pageSize,
-                                                       Authentication authentication) {
-        UUID buyerId = UUID.fromString(authentication.getName());
-        MyOrderListDTO orders = orderService.listMyOrders(buyerId, PageRequest.of(page, pageSize));
+    @PreAuthorize("hasAnyAuthority('SCOPE_CLIENT', 'SCOPE_ADMIN')")
+    public ResponseEntity<MyOrderListDTO> listOrders(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "20") int pageSize,
+                                                     Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("SCOPE_ADMIN"));
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "placedAt"));
+
+        MyOrderListDTO orders = isAdmin
+                ? orderService.listAllOrders(pageable)
+                : orderService.listMyOrders(UUID.fromString(authentication.getName()), pageable);
+
         return ResponseEntity.ok(orders);
     }
 
