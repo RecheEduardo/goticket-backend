@@ -71,6 +71,35 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     """)
     Page<MyOrderListItemDTO> findMyOrders(@Param("buyerId") UUID buyerId, Pageable pageable);
 
+    @Query(value = """
+        SELECT new tech.goticket.backendapi.order.dto.MyOrderListItemDTO(
+            o.orderId,
+            st.name,
+            e.eventId,
+            e.title,
+            (SELECT img.s3Key FROM EventImage img
+              WHERE img.event = e AND img.ordination = 0),
+            ed.startDate,
+            v.name,
+            v.city,
+            (SELECT COUNT(oi.orderItemId) FROM OrderItem oi WHERE oi.order = o),
+            o.totalPrice,
+            o.currency,
+            o.placedAt,
+            o.expiresAt,
+            o.paidAt,
+            o.canceledAt
+        )
+        FROM Order o
+        JOIN o.status st
+        JOIN o.event e
+        JOIN o.eventDate ed
+        JOIN e.venue v
+        ORDER BY o.placedAt DESC
+    """,
+                countQuery = "SELECT COUNT(o.orderId) FROM Order o")
+    Page<MyOrderListItemDTO> findAllOrders(Pageable pageable);
+
     @Query("""
         SELECT o FROM Order o
         JOIN FETCH o.status

@@ -170,12 +170,21 @@ public class OrderService {
     @Transactional(readOnly = true)
     public MyOrderListDTO listMyOrders(UUID buyerId, Pageable pageable) {
         var orders = orderRepository.findMyOrders(buyerId, pageable);
+        return toListDTO(orders);
+    }
 
-        return new MyOrderListDTO(orders.getNumber(),
-                                  orders.getSize(),
-                                  orders.getTotalPages(),
-                                  orders.getTotalElements(),
-                                  orders.getContent());
+    @Transactional(readOnly = true)
+    public MyOrderListDTO listAllOrders(Pageable pageable) {
+        var orders = orderRepository.findAllOrders(pageable);
+        return toListDTO(orders);
+    }
+
+    private MyOrderListDTO toListDTO(org.springframework.data.domain.Page<MyOrderListItemDTO> page) {
+        return new MyOrderListDTO(page.getNumber(),
+                                  page.getSize(),
+                                  page.getTotalPages(),
+                                  page.getTotalElements(),
+                                  page.getContent());
     }
 
     @Transactional(readOnly = true)
