@@ -31,6 +31,7 @@ import tech.goticket.backendapi.ticket.repository.TicketTypeRepository;
 import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.repository.UserRepository;
+import tech.goticket.backendapi.waitingroom.service.QueueGateService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -59,8 +60,14 @@ public class OrderService {
     private final FeeCalculator feeCalculator;
     private final StripeService stripeService;
     private final EventImageRepository eventImageRepository;
+    private final QueueGateService queueGateService;
 
-    public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson) {
+    public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson, String queueToken) {
+
+        Long eventId = eventDateRepository.findEventIdByEventDateId(request.eventDateId())
+                .orElseThrow(() -> new ResourceNotFoundException("EventDate não encontrada: " + request.eventDateId()));
+        queueGateService.assertAdmitted(queueToken, buyerId, eventId);
+
         var lookup = idempotencyService.checkAndRegister(idempotencyKey, buyerId, "POST /orders", rawBodyJson);
 
         if (lookup instanceof IdempotencyService.Replay replay) {

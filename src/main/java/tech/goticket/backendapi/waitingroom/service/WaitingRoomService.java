@@ -24,6 +24,7 @@ public class WaitingRoomService {
 
     private final StringRedisTemplate redis;
     private final QueueTokenService tokenService;
+    private final QueueGateService queueGateService;
 
     @Value("${goticket.waitingroom.admission-ttl-seconds:600}")
     private long admissionTtlSeconds;
@@ -35,6 +36,10 @@ public class WaitingRoomService {
     private String admitKey(Long e, UUID u) { return String.format(ADMIT_KEY, e, u); }
 
     public QueueStatusResponse enqueue(Long eventId, UUID userId) {
+        if (!queueGateService.requiresQueue(eventId)) {
+            return QueueStatusResponse.admitted(eventId, tokenService.issue(userId, eventId));
+        }
+
         if (redis.hasKey(admitKey(eventId, userId))) {
             return QueueStatusResponse.admitted(eventId, tokenService.issue(userId, eventId));
         }

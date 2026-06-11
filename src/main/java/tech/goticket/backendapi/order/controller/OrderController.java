@@ -36,12 +36,13 @@ public class OrderController {
     @PreAuthorize("hasAuthority('SCOPE_CLIENT')")
     public ResponseEntity<PlaceOrderResponse> placeOrder(
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey,
+            @RequestHeader(value = "X-Queue-Token", required = false) String queueToken,
             @Valid @RequestBody PlaceOrderRequest request,
             Authentication authentication,
             HttpServletRequest httpRequest) throws IOException {
         UUID buyerId = UUID.fromString(authentication.getName());
         String rawBody = objectMapper.writeValueAsString(request);
-        PlaceOrderResponse response = orderService.placeOrder(request, buyerId, idempotencyKey, rawBody);
+        PlaceOrderResponse response = orderService.placeOrder(request, buyerId, idempotencyKey, rawBody, queueToken);
 
         return ResponseEntity.created(URI.create("/orders/" + response.orderId()))
                 .body(response);

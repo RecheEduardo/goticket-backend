@@ -224,4 +224,15 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(apiError, HttpStatus.BAD_GATEWAY);
     }
+
+    @ExceptionHandler(QueueAdmissionRequiredException.class)
+    public ResponseEntity<ApiError> queueAdmissionRequired(QueueAdmissionRequiredException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.FORBIDDEN.value())
+                .status(HttpStatus.FORBIDDEN.name())
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
+    }
 }
