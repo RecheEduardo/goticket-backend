@@ -8,6 +8,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import tech.goticket.backendapi.shared.exception.*;
 import tech.goticket.backendapi.shared.exception.payment.StripeIntegrationException;
 import tech.goticket.backendapi.shared.exception.user.*;
@@ -234,5 +236,27 @@ public class GlobalExceptionHandler {
                 .errors(List.of(ex.getMessage()))
                 .build();
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.PAYLOAD_TOO_LARGE.value())     // 413
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.name())
+                .errors(List.of("Arquivo excede o tamanho máximo permitido (20MB)."))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiError> handleMultipart(MultipartException ex) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .code(HttpStatus.BAD_REQUEST.value())
+                .status(HttpStatus.BAD_REQUEST.name())
+                .errors(List.of("Requisição multipart inválida."))
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 }
