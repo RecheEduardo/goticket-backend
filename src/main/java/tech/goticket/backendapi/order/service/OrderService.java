@@ -32,6 +32,7 @@ import tech.goticket.backendapi.user.Role;
 import tech.goticket.backendapi.user.User;
 import tech.goticket.backendapi.user.repository.UserRepository;
 import tech.goticket.backendapi.waitingroom.service.QueueGateService;
+import tech.goticket.backendapi.waitingroom.service.WaitingRoomService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -61,6 +62,7 @@ public class OrderService {
     private final StripeService stripeService;
     private final EventImageRepository eventImageRepository;
     private final QueueGateService queueGateService;
+    private final WaitingRoomService waitingRoomService;
 
     public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson, String queueToken) {
 
@@ -84,6 +86,7 @@ public class OrderService {
         Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), intent.getId());
 
         idempotencyService.linkToOrder(idempotencyKey, updated.getOrderId(), 201);
+        waitingRoomService.releaseSlot(eventId, buyerId);
 
         return PlaceOrderResponse.from(updated, intent.getClientSecret(), stripePublishableKey);
     }

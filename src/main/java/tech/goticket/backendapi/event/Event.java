@@ -60,6 +60,9 @@ public class Event {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Instant lastUpdateDate;
 
+    @Column(name = "expected_high_demand", nullable = false)
+    private boolean expectedHighDemand = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private EventCategory category;

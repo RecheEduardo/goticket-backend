@@ -117,4 +117,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.orderId = :orderId
     """)
     Optional<Order> findByIdWithFullGraph(@Param("orderId") Long orderId);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.event.eventId = :eventId AND o.placedAt >= :since")
+    long countOrdersSince(@Param("eventId") Long eventId, @Param("since") Instant since);
 }

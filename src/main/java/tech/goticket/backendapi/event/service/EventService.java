@@ -223,6 +223,7 @@ public class EventService {
             "description",
             "ageRestriction",
             "salesStartDate",
+            "expectedHighDemand",
             "category"
     );
 

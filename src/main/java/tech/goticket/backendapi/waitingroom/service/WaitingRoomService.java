@@ -19,7 +19,7 @@ import java.util.UUID;
 public class WaitingRoomService {
 
     private static final String QUEUE_KEY   = "queue:event:%d";
-    private static final String ADMIT_KEY   = "admit:event:%d:user:%s";
+    private static final String ADMITTED_KEY   = "admitted:event:%d";
     private static final String ACTIVE_SET  = "waitingroom:active-events";
 
     private final StringRedisTemplate redis;
@@ -32,15 +32,18 @@ public class WaitingRoomService {
     @Value("${goticket.waitingroom.admit-batch-size:100}")
     private int admitBatchSize;
 
+    @Value("${goticket.waitingroom.max-active:500}")
+    private int maxActive;
+
     private String queueKey(Long eventId)  { return String.format(QUEUE_KEY, eventId); }
-    private String admitKey(Long e, UUID u) { return String.format(ADMIT_KEY, e, u); }
+    private String admittedKey(Long e) { return String.format(ADMITTED_KEY, e); }
 
     public QueueStatusResponse enqueue(Long eventId, UUID userId) {
         if (!queueGateService.requiresQueue(eventId)) {
             return QueueStatusResponse.admitted(eventId, tokenService.issue(userId, eventId));
         }
 
-        if (redis.hasKey(admitKey(eventId, userId))) {
+        if (isAdmitted(eventId, userId)) {
             return QueueStatusResponse.admitted(eventId, tokenService.issue(userId, eventId));
         }
 
@@ -54,7 +57,7 @@ public class WaitingRoomService {
     }
 
     public QueueStatusResponse getStatus(Long eventId, UUID userId) {
-        if (redis.hasKey(admitKey(eventId, userId))) {
+        if (isAdmitted(eventId, userId)) {
             return QueueStatusResponse.admitted(eventId, tokenService.issue(userId, eventId));
         }
 
@@ -80,26 +83,35 @@ public class WaitingRoomService {
         return batchesAhead * 5L;  // 5s = intervalo do job, ajustar no caso de mudança
     }
 
+    private boolean isAdmitted(Long eventId, UUID userId) {
+        Double score = redis.opsForZSet().score(admittedKey(eventId), userId.toString());
+        return score != null && score >= Instant.now().toEpochMilli();
+    }
+
     public Integer admitBatch(Long eventId, int batchSize) {
-        String key = queueKey(eventId);
+        String admitted = admittedKey(eventId);
+        long now = Instant.now().toEpochMilli();
 
-        Set<ZSetOperations.TypedTuple<String>> popped = redis.opsForZSet().popMin(key, batchSize);
+        redis.opsForZSet().removeRangeByScore(admitted, Double.NEGATIVE_INFINITY, now);
+        Long active = redis.opsForZSet().zCard(admitted);
+        long vagas = maxActive - (active == null ? 0 : active);
+        if (vagas <= 0) return 0;
 
+        Set<ZSetOperations.TypedTuple<String>> popped = redis.opsForZSet().popMin(queueKey(eventId), vagas);
         if (popped == null || popped.isEmpty()) {
-            redis.opsForSet().remove(ACTIVE_SET, eventId.toString());
+            if (active == null || active == 0) redis.opsForSet().remove(ACTIVE_SET, eventId.toString());
             return 0;
         }
 
-        for (ZSetOperations.TypedTuple<String> tuple : popped) {
-            String userId = tuple.getValue();
-            redis.opsForValue().set(
-                    String.format(ADMIT_KEY, eventId, userId),
-                    "1",
-                    Duration.ofSeconds(admissionTtlSeconds)
-            );
+        double expiry = now + Duration.ofSeconds(admissionTtlSeconds).toMillis();
+        for (var t : popped) {
+            if (t.getValue() != null) redis.opsForZSet().add(admitted, t.getValue(), expiry);
         }
-
-        log.info("WaitingRoom: admitidos {} usuário(s) do evento {}", popped.size(), eventId);
+        log.info("WaitingRoom: admitidos {} (pool {}/{}) do evento {}", popped.size(), active, maxActive, eventId);
         return popped.size();
+    }
+
+    public void releaseSlot(Long eventId, UUID userId) {
+        redis.opsForZSet().remove(admittedKey(eventId), userId.toString());
     }
 }
