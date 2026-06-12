@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.event.repository.EventSectorRepository;
 import tech.goticket.backendapi.shared.exception.InvalidArgumentException;
 import tech.goticket.backendapi.shared.exception.ForbiddenActionException;
+import tech.goticket.backendapi.shared.model.status.Status;
 import tech.goticket.backendapi.shared.exception.PatchProgressingException;
 import tech.goticket.backendapi.shared.exception.ResourceNotFoundException;
 import tech.goticket.backendapi.user.Role;
@@ -70,8 +71,23 @@ public class VenueService {
         validateUserPermission(existingVenue, userId);
 
         try {
+            String previousStatusName = existingVenue.getStatus() != null
+                    ? existingVenue.getStatus().getName()
+                    : null;
+
             objectMapper.readerForUpdating(existingVenue).readValue(patchNode);
             existingVenue.setLastUpdateDate(Instant.now());
+
+            String newStatusName = existingVenue.getStatus() != null
+                    ? existingVenue.getStatus().getName()
+                    : null;
+
+            boolean transitionedToActive = Status.Values.ACTIVE.name().equals(newStatusName)
+                    && !Status.Values.ACTIVE.name().equals(previousStatusName);
+
+            if (transitionedToActive) {
+                existingVenue.setApprovalDate(Instant.now());
+            }
 
             return venueRepository.save(existingVenue);
         } catch (Exception e) {

@@ -106,7 +106,7 @@ public class VenueController {
                 .ifPresent(venue -> { throw new DocumentAlreadyExistsException("Este CNPJ já está cadastrado no sistema para outro espaço."); });
 
         Instant now = Instant.now();
-        Status venueStatus = statusRepository.findByName(Status.Values.ACTIVE.name());
+        Status venueStatus = statusRepository.findByName(Status.Values.INACTIVE.name());
 
         Venue newVenue = new Venue(
                 dto.name(),
