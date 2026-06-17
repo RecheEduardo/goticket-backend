@@ -1,6 +1,5 @@
 package tech.goticket.backendapi.order.service;
 
-import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +20,9 @@ import tech.goticket.backendapi.order.dto.*;
 import tech.goticket.backendapi.order.enums.OrderStatus;
 import tech.goticket.backendapi.order.repository.OrderRepository;
 import tech.goticket.backendapi.order.repository.OrderStatusRepository;
+import tech.goticket.backendapi.payment.gateway.PaymentGateway;
 import tech.goticket.backendapi.payment.service.StripeService;
 import tech.goticket.backendapi.shared.exception.*;
-import tech.goticket.backendapi.shared.exception.payment.StripeIntegrationException;
 import tech.goticket.backendapi.ticket.BatchAllotment;
 import tech.goticket.backendapi.ticket.enums.TicketType;
 import tech.goticket.backendapi.ticket.repository.BatchAllotmentRepository;
@@ -59,10 +58,10 @@ public class OrderService {
     private final BatchAllotmentRepository batchAllotmentRepository;
     private final UserRepository userRepository;
     private final FeeCalculator feeCalculator;
-    private final StripeService stripeService;
     private final EventImageRepository eventImageRepository;
     private final QueueGateService queueGateService;
     private final WaitingRoomService waitingRoomService;
+    private final PaymentGateway paymentGateway;
 
     public PlaceOrderResponse placeOrder(PlaceOrderRequest request, UUID buyerId, String idempotencyKey, String rawBodyJson, String queueToken) {
 
@@ -76,19 +75,19 @@ public class OrderService {
             Order existing = orderRepository.findById(replay.orderId())
                     .orElseThrow(() -> new IllegalStateException("Idempotency-Key aponta para orderId não existente."));
             String clientSecret = (existing.getPaymentIntentId() != null)
-                    ? fetchClientSecret(existing.getPaymentIntentId())
+                    ? paymentGateway.fetchClientSecret(existing.getPaymentIntentId())
                     : null;
             return PlaceOrderResponse.from(existing, clientSecret, stripePublishableKey);
         }
 
         Order order = createOrderWithReservation(request, buyerId, idempotencyKey);
-        PaymentIntent intent = stripeService.createPaymentIntent(order, idempotencyKey);
-        Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), intent.getId());
+        var result = paymentGateway.createIntent(order, idempotencyKey);
+        Order updated = persistenceService.attachPaymentIntent(order.getOrderId(), result.id());
 
         idempotencyService.linkToOrder(idempotencyKey, updated.getOrderId(), 201);
         waitingRoomService.releaseSlot(eventId, buyerId);
 
-        return PlaceOrderResponse.from(updated, intent.getClientSecret(), stripePublishableKey);
+        return PlaceOrderResponse.from(updated, result.clientSecret(), stripePublishableKey);
     }
 
     private Order createOrderWithReservation(PlaceOrderRequest request, UUID buyerId, String idempotencyKey) {
@@ -114,15 +113,6 @@ public class OrderService {
         }
         throw new ReservationContentionException(
                 "Não foi possível reservar os ingressos após " + MAX_RESERVATION_ATTEMPTS + ". Tente de novo em alguns segundos.");
-    }
-
-    private String fetchClientSecret(String paymentIntentId) {
-        try {
-            return PaymentIntent.retrieve(paymentIntentId).getClientSecret();
-        } catch (StripeException e) {
-            throw new StripeIntegrationException(
-                    "Falha ao recuperar PaymentIntent existente: " + paymentIntentId, e);
-        }
     }
 
     private void validateIdempotencyKey(String key) {
@@ -260,7 +250,7 @@ public class OrderService {
         Order saved = orderRepository.save(order);
 
         if (saved.getPaymentIntentId() != null) {
-            stripeService.tryCancelPaymentIntent(saved.getPaymentIntentId(), reason);
+            paymentGateway.tryCancel(saved.getPaymentIntentId(), reason);
         }
 
         return saved;

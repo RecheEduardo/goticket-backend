@@ -73,4 +73,13 @@ public class StripeService {
             log.warn("Falha (não-fatal) ao cancelar PI {}: {}", paymentIntentId, e.getMessage());
         }
     }
+
+    public String retrieveClientSecret(String paymentIntentId) {
+        try {
+            return PaymentIntent.retrieve(paymentIntentId).getClientSecret();
+        } catch (StripeException e) {
+            throw new StripeIntegrationException(
+                    "Falha ao recuperar PaymentIntent existente: " + paymentIntentId, e);
+        }
+    }
 }

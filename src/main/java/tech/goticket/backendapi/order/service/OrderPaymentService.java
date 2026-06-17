@@ -61,9 +61,13 @@ public class OrderPaymentService {
             return;
         }
 
+        order.setPaymentMethodSnapshot(safePaymentMethodId(intent));
+        markOrderPaid(order);
+    }
+
+    private void markOrderPaid(Order order) {
         OrderStatus paidStatus = findStatus(OrderStatus.Values.PAID);
         order.markPaid(paidStatus, Instant.now());
-        order.setPaymentMethodSnapshot(safePaymentMethodId(intent));
 
         for (OrderItem item : order.getItems()) {
             Ticket ticket = ticketGenerationService.generateTicket(item, order.getBuyer());
@@ -78,6 +82,21 @@ public class OrderPaymentService {
         orderRepository.save(order);
         log.info("Order {} marcada como PAID. {} tickets gerados.",
                 order.getOrderId(), order.getItems().size());
+    }
+
+    @Transactional
+    public void markPaidForLoadTest(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order não encontrada: " + orderId));
+
+        if (!order.getStatus().isPendingPayment()) {
+            // idempotente: se já pagou (retry do k6), não faz nada
+            log.info("LoadTest: Order {} não está PENDING ({}) — ignorando.",
+                    orderId, order.getStatus().getName());
+            return;
+        }
+
+        markOrderPaid(order);
     }
 
     @Transactional
