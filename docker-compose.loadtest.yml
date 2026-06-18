@@ -1,0 +1,24 @@
+# Sobe com: docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d
+services:
+  postgres:
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2g }
+
+  redis:
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512m }
+
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,loadtest      # ativa fake gateway e loadtest controller
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC"
+    ports: ["8080:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 4g }
