@@ -7,12 +7,16 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.order.Order;
 import tech.goticket.backendapi.order.OrderItem;
 import tech.goticket.backendapi.order.enums.OrderStatus;
 import tech.goticket.backendapi.order.repository.OrderRepository;
 import tech.goticket.backendapi.order.repository.OrderStatusRepository;
+import tech.goticket.backendapi.shared.exception.ReservationContentionException;
 import tech.goticket.backendapi.ticket.Ticket;
 import tech.goticket.backendapi.ticket.service.TicketGenerationService;
 
@@ -31,6 +35,13 @@ public class OrderPaymentService {
     private final OrderStatusRepository orderStatusRepository;
     private final TicketGenerationService ticketGenerationService;
     private final ReservationService reservationService;
+
+    @Lazy
+    @Autowired
+    private OrderPaymentService self;
+
+    private static final int MAX_PAY_ATTEMPTS = 5;
+    private static final long PAY_BACKOFF_MS = 30;
 
     @Transactional
     public void markPaidByIntent(PaymentIntent intent) {
@@ -84,8 +95,12 @@ public class OrderPaymentService {
                 order.getOrderId(), order.getItems().size());
     }
 
-    @Transactional
     public void markPaidForLoadTest(Long orderId) {
+        runWithRetry(() -> self.markPaidForLoadTestTx(orderId));
+    }
+
+    @Transactional
+    public void markPaidForLoadTestTx(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order não encontrada: " + orderId));
 
@@ -97,6 +112,18 @@ public class OrderPaymentService {
         }
 
         markOrderPaid(order);
+    }
+
+    private void runWithRetry(Runnable action) {
+        for (int attempt = 0; attempt < MAX_PAY_ATTEMPTS; attempt++) {
+            try { action.run(); return; }
+            catch (ObjectOptimisticLockingFailureException e) {
+                log.warn("Conflito otimista na confirmação {}/{}", attempt + 1, MAX_PAY_ATTEMPTS);
+                try { Thread.sleep(PAY_BACKOFF_MS * (1L << attempt)); }
+                catch (InterruptedException ie) { Thread.currentThread().interrupt(); break; }
+            }
+        }
+        throw new ReservationContentionException("Confirmação não concluída após " + MAX_PAY_ATTEMPTS + " tentativas.");
     }
 
     @Transactional

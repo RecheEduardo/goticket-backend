@@ -35,6 +35,7 @@ import tech.goticket.backendapi.waitingroom.service.WaitingRoomService;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static tech.goticket.backendapi.order.util.OrderUtils.countByAllotment;
 
@@ -42,8 +43,8 @@ import static tech.goticket.backendapi.order.util.OrderUtils.countByAllotment;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
-    private static final int MAX_RESERVATION_ATTEMPTS = 3;
-    private static final long INITIAL_BACKOFF_MS = 50L;
+    private static final int MAX_RESERVATION_ATTEMPTS = 6;
+    private static final long INITIAL_BACKOFF_MS = 25L;
 
     @Value("${stripe.publishable.key}")
     private String stripePublishableKey;
@@ -126,7 +127,9 @@ public class OrderService {
 
     private void sleepWithBackoff(int attempt) {
         try {
-            Thread.sleep(INITIAL_BACKOFF_MS * (1L << attempt));  // 50ms, 100ms, 200ms
+            long cap = Math.min(INITIAL_BACKOFF_MS * (1L << attempt), 1000L);
+            long delay = ThreadLocalRandom.current().nextLong(1, cap + 1);
+            Thread.sleep(delay);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             throw new ReservationContentionException("Interrompido durante retentativa.");

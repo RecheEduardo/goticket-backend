@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import tech.goticket.backendapi.idempotency.IdempotencyKey;
 import tech.goticket.backendapi.idempotency.IdempotencyKeyRepository;
@@ -28,7 +29,6 @@ public class IdempotencyService {
     @Value("${goticket.checkout.idempotency.ttl-hours:24}")
     private long ttlHours;
 
-    @Transactional
     public LookupResult checkAndRegister(String key, UUID userId, String endpoint, String bodyJson) {
         if(key == null || key.isBlank()) {
             throw new ConflictException("Header Idempotency-Key obrigatório.");
@@ -37,18 +37,7 @@ public class IdempotencyService {
 
         Optional<IdempotencyKey> existingKey = repository.findByKey(key);
         if(existingKey.isPresent()) {
-            IdempotencyKey ik = existingKey.get();
-
-            if(!ik.getUserId().equals(userId)) {
-                throw new ConflictException("Idempotency-Key já foi utilizada por outro usuário.");
-            }
-            if(!ik.getRequestHash().equals(hash)) {
-                throw new ConflictException(
-                        "Idempotency-Key reutilizada com body diferente. " +
-                                "Gere uma nova chave para uma compra distinta.");
-            }
-            log.info("Idempotency hit: key={}, orderId={}", key, ik.getOrderId());
-            return LookupResult.replay(ik.getOrderId());
+            return replayOrInFlight(existingKey.get(), userId, hash);
         }
 
         IdempotencyKey newKey = new IdempotencyKey();
@@ -58,9 +47,35 @@ public class IdempotencyService {
         newKey.setRequestHash(hash);
         newKey.setCreatedAt(Instant.now());
         newKey.setExpiresAt(Instant.now().plus(Duration.ofHours(ttlHours)));
-        repository.save(newKey);
 
-        return LookupResult.fresh();
+        try {
+            repository.saveAndFlush(newKey);
+            return LookupResult.fresh();
+        } catch (DataIntegrityViolationException e) {
+            log.info("Idempotency registration race for key={}, recovering winner.", key);
+            IdempotencyKey winner = repository.findByKey(key)
+                    .orElseThrow(() -> new ConflictException(
+                            "Conflito de Idempotency-Key, mas registro não encontrado na recovery."));
+            return replayOrInFlight(winner, userId, hash);
+        }
+    }
+
+    private LookupResult replayOrInFlight(IdempotencyKey ik, UUID userId, String hash) {
+        if(!ik.getUserId().equals(userId)) {
+            throw new ConflictException("Idempotency-Key já foi utilizada por outro usuário.");
+        }
+        if(!ik.getRequestHash().equals(hash)) {
+            throw new ConflictException(
+                    "Idempotency-Key reutilizada com body diferente. " +
+                            "Gere uma nova chave para uma compra distinta.");
+        }
+        if(ik.getOrderId() == null) {
+            throw new ConflictException(
+                    "Já existe uma requisição em processamento para esta Idempotency-Key. " +
+                            "Tente novamente em instantes.");
+        }
+        log.info("Idempotency hit: key={}, orderId={}", ik.getKey(), ik.getOrderId());
+        return LookupResult.replay(ik.getOrderId());
     }
 
     @Transactional

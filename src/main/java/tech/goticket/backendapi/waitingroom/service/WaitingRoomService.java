@@ -97,7 +97,8 @@ public class WaitingRoomService {
         long vagas = maxActive - (active == null ? 0 : active);
         if (vagas <= 0) return 0;
 
-        Set<ZSetOperations.TypedTuple<String>> popped = redis.opsForZSet().popMin(queueKey(eventId), vagas);
+        long toAdmit = Math.min(vagas, batchSize);
+        Set<ZSetOperations.TypedTuple<String>> popped = redis.opsForZSet().popMin(queueKey(eventId), toAdmit);
         if (popped == null || popped.isEmpty()) {
             if (active == null || active == 0) redis.opsForSet().remove(ACTIVE_SET, eventId.toString());
             return 0;
