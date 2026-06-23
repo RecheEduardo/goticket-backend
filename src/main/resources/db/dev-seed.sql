@@ -799,7 +799,7 @@ INSERT INTO tb_batch_allotments (ticket_type_id, quota, sold_tickets, price, reg
 
 -- 1) Evento (APPROVED=2, PUBLIC=1, Festas e Shows=9, Allianz=2)
 INSERT INTO tb_events (title, description, age_restriction, sales_start_date, start_date, end_date,
-    approval_date, register_date, last_update_date, category_id, status_id, organizer_id, visibility_id, venue_id)
+    approval_date, register_date, last_update_date, category_id, status_id, organizer_id, visibility_id, venue_id, expected_high_demand)
 VALUES (
     'Allianz Live Experience',
     'A Allianz Live Experience transforma o Allianz Parque em palco da maior noite de '
@@ -821,10 +821,10 @@ VALUES (
     || 'Prepare-se para uma experiência inesquecível: duas noites, quatro setores, uma única '
     || 'emoção coletiva sob o céu de São Paulo.',
     18,
-    NOW() - INTERVAL '7 days',
+    NOW(),
     date_trunc('hour', NOW()) + INTERVAL '80 days',
     date_trunc('hour', NOW()) + INTERVAL '81 days 6 hours',
-    NOW(), NOW(), NOW(), 9, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 2
+    NOW(), NOW(), NOW(), 9, 2, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 1, 2, true
 );
 
 -- 3) Duas datas futuras

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import tech.goticket.backendapi.waitingroom.service.WaitingRoomService;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +22,8 @@ public class AdmitFromQueueJob {
     @Value("${goticket.waitingroom.admit-batch-size:100}")
     private int admitBatchSize;
 
-    @Scheduled(fixedDelay = 5_000, initialDelay = 5_000)
+    // padrão -> @Scheduled(fixedDelay = 5_000, initialDelay = 5_000)
+    @Scheduled(fixedDelay = 5, initialDelay = 5, timeUnit = TimeUnit.MINUTES)
     public void admit() {
         Set<String> activeEvents = redis.opsForSet().members("waitingroom:active-events");
         if (activeEvents == null || activeEvents.isEmpty()) return;
